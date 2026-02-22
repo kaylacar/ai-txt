@@ -61,7 +61,7 @@ export const AiTxtDocumentSchema = z.object({
   policies: ContentPoliciesSchema,
   trainingPaths: TrainingPathsSchema.optional(),
   licensing: LicensingInfoSchema.optional(),
-  agents: z.record(z.string(), AgentPolicySchema),
+  agents: z.record(z.string().min(1), AgentPolicySchema),
   content: ContentRequirementsSchema.optional(),
   compliance: ComplianceConfigSchema.optional(),
   metadata: z.record(z.string(), z.string()).optional(),

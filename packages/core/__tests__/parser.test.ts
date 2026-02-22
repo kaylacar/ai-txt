@@ -188,6 +188,62 @@ Site-Contact: test@test.com
     expect(result.document!.site.contact).toBe("test@test.com");
   });
 
+  it("warns on orphan indented lines", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+  Orphan-Field: value
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Indented line outside of a block"))).toBe(true);
+  });
+
+  it("warns on empty agent name", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent:
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Agent name must not be empty"))).toBe(true);
+  });
+
+  it("warns on zero rate limit", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: testbot
+  Rate-Limit: 0/minute
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Invalid rate limit"))).toBe(true);
+  });
+
+  it("parses all agent policy overrides", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: mybot
+  Training: allow
+  Scraping: deny
+  Indexing: deny
+  Caching: allow
+  Rate-Limit: 100/hour
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    const agent = result.document!.agents["mybot"];
+    expect(agent.training).toBe("allow");
+    expect(agent.scraping).toBe("deny");
+    expect(agent.indexing).toBe("deny");
+    expect(agent.caching).toBe("allow");
+    expect(agent.rateLimit?.requests).toBe(100);
+    expect(agent.rateLimit?.window).toBe("hour");
+  });
+
   it("parses deny-all document", () => {
     const doc = `
 Site-Name: Private Corp

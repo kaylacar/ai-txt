@@ -51,7 +51,7 @@ export function validate(doc: AiTxtDocument): ValidationResult {
     });
   }
 
-  // Agent policy values must be valid
+  // Agent policy checks
   for (const [agentName, policy] of Object.entries(doc.agents)) {
     const policyFields = ["training", "scraping", "indexing", "caching"] as const;
     for (const field of policyFields) {
@@ -61,6 +61,14 @@ export function validate(doc: AiTxtDocument): ValidationResult {
           path: `agents.${agentName}.${field}`,
           message: `Invalid policy value: "${val}"`,
           code: "INVALID_POLICY_VALUE",
+        });
+      }
+      // "conditional" doesn't make sense at agent level (no per-agent training paths)
+      if (val === "conditional") {
+        warnings.push({
+          path: `agents.${agentName}.${field}`,
+          message: `Agent "${agentName}" uses "conditional" for ${field}, but per-agent conditional paths are not supported. Use "allow" or "deny" instead.`,
+          code: "AGENT_CONDITIONAL_POLICY",
         });
       }
     }

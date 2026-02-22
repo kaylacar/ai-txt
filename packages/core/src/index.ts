@@ -9,6 +9,10 @@ export { generateJSON } from "./generator-json.js";
 // Validator
 export { validate, validateText, validateJSON } from "./validator.js";
 
+// Resolver
+export { resolve, canAccess, matchPath, globMatch } from "./resolver.js";
+export type { ResolvedPolicy, AccessResult } from "./resolver.js";
+
 // Client
 export { AiTxtClient } from "./client.js";
 export type { ClientOptions } from "./client.js";

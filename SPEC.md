@@ -278,6 +278,12 @@ Agents SHOULD prefer the JSON format when both are available.
 
 Agents SHOULD cache the policy for the duration declared by the HTTP `Cache-Control` header, with a minimum TTL of 60 seconds.
 
+Agents SHOULD use `ETag` and `If-None-Match` headers for cache revalidation to avoid re-downloading unchanged policies.
+
+### Absence of ai.txt
+
+The absence of `ai.txt` does NOT imply any default policy. If a site does not serve `/.well-known/ai.txt` or `/.well-known/ai.json`, existing norms apply — including `robots.txt`, the site's terms of service, and applicable law. `ai.txt` provides additional granularity; it does not replace the baseline.
+
 ### Policy Enforcement
 
 `ai.txt` is **advisory**. It declares the site owner's policy. Compliance is expected but not enforced by the file itself.

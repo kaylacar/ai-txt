@@ -17,7 +17,9 @@ export function sanitizeValue(value: unknown, maxLength = 500): string {
 export function parseRateLimit(value: string): { requests: number; window: string } | null {
   const match = value.match(/^(\d+)\/(second|minute|hour|day)$/);
   if (!match) return null;
-  return { requests: parseInt(match[1], 10), window: match[2] };
+  const requests = parseInt(match[1], 10);
+  if (requests <= 0) return null;
+  return { requests, window: match[2] };
 }
 
 /**

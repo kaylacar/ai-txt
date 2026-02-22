@@ -65,6 +65,12 @@ export function parse(input: string): ParseResult {
     // Check if this is an indented line
     const isIndented = raw.startsWith("  ") || raw.startsWith("\t");
 
+    // Indented line outside a block — warn and skip
+    if (isIndented && state === "TOP_LEVEL") {
+      warnings.push({ line: lineNum, message: `Indented line outside of a block: "${trimmed}"` });
+      continue;
+    }
+
     if (isIndented && state === "IN_AGENT" && currentAgentPolicy) {
       const colonIdx = trimmed.indexOf(":");
       if (colonIdx === -1) {
@@ -210,9 +216,13 @@ export function parse(input: string): ParseResult {
 
       // Agent block
       case "Agent":
-        currentAgentName = value;
-        currentAgentPolicy = {};
-        state = "IN_AGENT";
+        if (!value) {
+          warnings.push({ line: lineNum, field: "Agent", message: "Agent name must not be empty" });
+        } else {
+          currentAgentName = value;
+          currentAgentPolicy = {};
+          state = "IN_AGENT";
+        }
         break;
 
       default:

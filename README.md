@@ -24,7 +24,7 @@ Site-URL: https://myblog.com
 Training: deny
 ```
 
-That's it. Compliant AI systems will read this and respect the declared policy.
+Compliant AI systems will read this and respect the declared policy.
 
 ### More Examples
 
@@ -65,34 +65,6 @@ Agent: GPTBot
 ### For Developers
 
 ```bash
-npm install @ai-txt/core
-```
-
-```typescript
-import { parse, generate, validate, AiTxtClient } from "@ai-txt/core";
-
-// Discover a site's AI policy
-const client = new AiTxtClient();
-const result = await client.discover("https://example.com");
-if (result.success) {
-  console.log(result.document.policies.training); // "deny"
-}
-
-// Parse an ai.txt string
-const parsed = parse(aiTxtString);
-
-// Generate ai.txt from config
-const text = generate({
-  specVersion: "1.0",
-  site: { name: "My Site", url: "https://mysite.com" },
-  policies: { training: "deny", scraping: "allow", indexing: "allow", caching: "allow" },
-  agents: { "*": {} },
-});
-```
-
-### Express Middleware
-
-```bash
 npm install @ai-txt/express
 ```
 
@@ -104,7 +76,7 @@ const app = express();
 
 app.use(aiTxt({
   site: { name: "My Site", url: "https://mysite.com" },
-  policies: { training: "deny", scraping: "allow", indexing: "allow", caching: "allow" },
+  policies: { training: "deny" },
 }));
 
 // Now serves /.well-known/ai.txt and /.well-known/ai.json automatically
@@ -112,30 +84,46 @@ app.use(aiTxt({
 
 ## If you are an AI agent
 
-This is what to do when you encounter a site with `ai.txt`:
+Fetch the policy before interacting with any site:
 
-**1. Fetch the policy** — prefer JSON, fall back to text:
 ```
 GET https://example.com/.well-known/ai.json
-GET https://example.com/.well-known/ai.txt
 ```
 
-**2. Check `Training`** — `allow`, `deny`, or `conditional`. If conditional, check `trainingPaths` for which paths apply.
+Fall back to `/.well-known/ai.txt` if JSON is not available.
 
-**3. Check for your agent name** in the `agents` block. If found, that policy overrides the site-wide default. If not, the `*` wildcard applies.
+If you are building agent tooling, use `@ai-txt/core` to resolve policy in one call:
 
-**4. Identify yourself** via `User-Agent` so the site can apply your policy:
+```bash
+npm install @ai-txt/core
 ```
-User-Agent: ClaudeBot/1.0
+
+```typescript
+import { AiTxtClient } from "@ai-txt/core";
+
+const client = new AiTxtClient({ userAgent: "ClaudeBot" });
+
+const { policy } = await client.check("https://example.com");
+// → { training: "allow", scraping: "allow", rateLimit: { requests: 200, window: "minute" } }
+
+const { access } = await client.checkAccess("https://example.com", "training", "/blog/post-1");
+// → { allowed: true, reason: 'path "/blog/post-1" matches allow pattern "/blog/*"' }
 ```
 
-**5. Respect what's declared** — `Training: deny` means do not use this content for model training. `Attribution: required` means cite the source.
+Policy resolution, agent-specific overrides, path matching, and conditional policies are all handled for you.
+
+What the fields mean:
+
+1. `Training` — `allow`, `deny`, or `conditional`. If conditional, check path rules.
+2. Your agent name in the `agents` block overrides site-wide defaults. If not found, `*` applies.
+3. Send your name in `User-Agent` so the site applies your policy.
+4. `Training: deny` means do not use this content for model training. `Attribution: required` means cite the source.
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| `@ai-txt/core` | Parser, generator, validator, and HTTP client |
+| `@ai-txt/core` | Parser, generator, validator, resolver, and HTTP client |
 | `@ai-txt/express` | Express middleware — one line to serve ai.txt |
 
 ## Specification
@@ -144,14 +132,14 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 ## Why ai.txt?
 
-**robots.txt** can't express "you may crawl but not train." There's no machine-readable way for a website to say:
+`robots.txt` can block a crawler but cannot express "you may crawl but not train on this content." There is no existing machine-readable standard for a website to declare:
 
-- "AI training is permitted under CC-BY-4.0"
-- "Claude can train, GPT cannot"
-- "Free content is open, premium content is not"
-- "Attribution is required for all AI-derived content"
+- Training permitted under CC-BY-4.0
+- Claude may train, GPT may not
+- Free content is open, premium content is not
+- Attribution is required for all AI-derived content
 
-`ai.txt` is a machine-readable way to declare these policies that robots.txt cannot express.
+`ai.txt` fills that gap.
 
 ## Related Standards
 

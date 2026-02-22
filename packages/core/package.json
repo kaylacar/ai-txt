@@ -13,9 +13,14 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "bin": {
+    "ai-txt": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "build": "tsup src/index.ts src/cli.ts --format esm,cjs --dts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
@@ -48,6 +53,7 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@types/node": "^25.3.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.0"
