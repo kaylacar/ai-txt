@@ -2,14 +2,15 @@ import { describe, it, expect } from "vitest";
 import { resolve, canAccess, matchPath, globMatch } from "../src/resolver.js";
 import type { AiTxtDocument } from "../src/types.js";
 
+// Agent names are stored lowercase (per spec: case-insensitive matching)
 const BASE_DOC: AiTxtDocument = {
   specVersion: "1.0",
   site: { name: "Test", url: "https://test.com" },
   policies: { training: "deny", scraping: "allow", indexing: "allow", caching: "allow" },
   agents: {
     "*": { rateLimit: { requests: 60, window: "minute" } },
-    ClaudeBot: { training: "allow", rateLimit: { requests: 200, window: "minute" } },
-    GPTBot: { training: "deny", scraping: "deny" },
+    claudebot: { training: "allow", rateLimit: { requests: 200, window: "minute" } },
+    gptbot: { training: "deny", scraping: "deny" },
   },
 };
 
@@ -43,7 +44,7 @@ describe("resolve", () => {
   it("resolves when no wildcard exists", () => {
     const doc: AiTxtDocument = {
       ...BASE_DOC,
-      agents: { ClaudeBot: { training: "allow" } },
+      agents: { claudebot: { training: "allow" } },
     };
     const policy = resolve(doc, "UnknownBot");
     expect(policy.training).toBe("deny");          // site-wide
@@ -62,6 +63,19 @@ describe("resolve", () => {
   it("no content requirements when none defined", () => {
     const policy = resolve(BASE_DOC, "ClaudeBot");
     expect(policy.content).toBeUndefined();
+  });
+
+  it("resolves agent names case-insensitively", () => {
+    // "ClaudeBot", "claudebot", "CLAUDEBOT" should all match the "claudebot" entry
+    const p1 = resolve(BASE_DOC, "ClaudeBot");
+    const p2 = resolve(BASE_DOC, "claudebot");
+    const p3 = resolve(BASE_DOC, "CLAUDEBOT");
+    expect(p1.training).toBe("allow");
+    expect(p2.training).toBe("allow");
+    expect(p3.training).toBe("allow");
+    expect(p1.rateLimit).toEqual({ requests: 200, window: "minute" });
+    expect(p2.rateLimit).toEqual({ requests: 200, window: "minute" });
+    expect(p3.rateLimit).toEqual({ requests: 200, window: "minute" });
   });
 });
 

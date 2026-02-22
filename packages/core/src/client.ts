@@ -48,6 +48,9 @@ export class AiTxtClient {
    * Results are cached per the configured TTL.
    */
   async discover(baseUrl: string): Promise<ParseResult> {
+    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+      return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
+    }
     const normalized = baseUrl.replace(/\/+$/, "");
 
     // Check cache
@@ -74,6 +77,9 @@ export class AiTxtClient {
    * Discover ai.json from a site at /.well-known/ai.json.
    */
   async discoverJSON(baseUrl: string): Promise<ParseResult> {
+    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+      return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
+    }
     const normalized = baseUrl.replace(/\/+$/, "");
 
     const result = await this.fetchAndParse(`${normalized}${WELL_KNOWN_JSON}`, "json");

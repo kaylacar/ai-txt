@@ -89,7 +89,7 @@ describe("aiTxt middleware", () => {
     const text = await res.text();
     const result = parseJSON(text);
     expect(result.success).toBe(true);
-    expect(result.document?.agents["ClaudeBot"]?.training).toBe("allow");
+    expect(result.document?.agents["claudebot"]?.training).toBe("allow");
   });
 
   it("sets CORS headers", async () => {

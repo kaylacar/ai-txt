@@ -30,7 +30,7 @@ const TEST_DOC: AiTxtDocument = {
   },
   agents: {
     "*": { rateLimit: { requests: 60, window: "minute" } },
-    "ClaudeBot": { training: "allow", rateLimit: { requests: 200, window: "minute" } },
+    "claudebot": { training: "allow", rateLimit: { requests: 200, window: "minute" } },
   },
   content: {
     attribution: "required",
@@ -76,7 +76,7 @@ describe("roundtrip: generate -> parse", () => {
     const text = generate(TEST_DOC);
     const result = parse(text);
     expect(result.document?.agents["*"]).toEqual(TEST_DOC.agents["*"]);
-    expect(result.document?.agents["ClaudeBot"]).toEqual(TEST_DOC.agents["ClaudeBot"]);
+    expect(result.document?.agents["claudebot"]).toEqual(TEST_DOC.agents["claudebot"]);
   });
 
   it("text roundtrip preserves content requirements", () => {

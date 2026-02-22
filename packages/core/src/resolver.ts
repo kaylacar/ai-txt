@@ -53,7 +53,7 @@ export interface AccessResult {
  *   3. Site-wide policy (`policies`)
  */
 export function resolve(doc: AiTxtDocument, agentName: string): ResolvedPolicy {
-  const agentBlock: AgentPolicy = doc.agents[agentName] ?? {};
+  const agentBlock: AgentPolicy = doc.agents[agentName.toLowerCase()] ?? {};
   const wildcardBlock: AgentPolicy = doc.agents["*"] ?? {};
 
   const resolved: ResolvedPolicy = {

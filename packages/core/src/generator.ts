@@ -9,9 +9,9 @@ export function generate(doc: AiTxtDocument): string {
 
   // Header
   lines.push("# ai.txt — AI Policy Declaration");
-  lines.push(`# Spec-Version: ${doc.specVersion}`);
+  lines.push(`Spec-Version: ${doc.specVersion}`);
   if (doc.generatedAt) {
-    lines.push(`# Generated: ${doc.generatedAt}`);
+    lines.push(`Generated-At: ${doc.generatedAt}`);
   }
   lines.push("");
 

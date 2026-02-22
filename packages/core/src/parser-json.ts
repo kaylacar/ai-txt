@@ -29,9 +29,19 @@ export function parseJSON(input: string): ParseResult {
     };
   }
 
+  // Normalize agent names to lowercase (spec requires case-insensitive matching)
+  const doc = result.data;
+  if (doc.agents) {
+    const normalized: typeof doc.agents = {};
+    for (const [name, policy] of Object.entries(doc.agents)) {
+      normalized[name === "*" ? "*" : name.toLowerCase()] = policy;
+    }
+    doc.agents = normalized;
+  }
+
   return {
     success: true,
-    document: result.data,
+    document: doc,
     errors: [],
     warnings: [],
   };

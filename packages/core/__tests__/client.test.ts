@@ -226,4 +226,21 @@ describe("AiTxtClient", () => {
     const result = await client.discover("https://test.com///");
     expect(result.success).toBe(true);
   });
+
+  it("rejects non-HTTPS URLs", async () => {
+    const client = new AiTxtClient();
+    const result = await client.discover("http://insecure.com");
+    expect(result.success).toBe(false);
+    expect(result.errors[0].message).toContain("HTTPS");
+  });
+
+  it("allows localhost over HTTP (for development)", async () => {
+    globalThis.fetch = mockFetch({
+      "http://localhost:3000/.well-known/ai.json": { status: 200, body: VALID_JSON },
+    }) as any;
+
+    const client = new AiTxtClient();
+    const result = await client.discover("http://localhost:3000");
+    expect(result.success).toBe(true);
+  });
 });

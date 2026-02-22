@@ -53,11 +53,11 @@ export function parse(input: string): ParseResult {
     const raw = lines[i];
     const trimmed = raw.trim();
 
-    // Skip empty lines and comments
+    // Skip empty lines and comments (accept legacy # Spec-Version / # Generated for backward compat)
     if (trimmed === "" || trimmed.startsWith("#")) {
       const specMatch = trimmed.match(/^#\s*Spec-Version:\s*(.+)/i);
       if (specMatch) specVersion = specMatch[1].trim();
-      const genMatch = trimmed.match(/^#\s*Generated:\s*(.+)/i);
+      const genMatch = trimmed.match(/^#\s*Generated(?:-At)?:\s*(.+)/i);
       if (genMatch) generatedAt = genMatch[1].trim();
       continue;
     }
@@ -78,38 +78,39 @@ export function parse(input: string): ParseResult {
         continue;
       }
       const key = trimmed.slice(0, colonIdx).trim();
+      const keyLower = key.toLowerCase();
       const value = trimmed.slice(colonIdx + 1).trim();
 
-      switch (key) {
-        case "Training":
+      switch (keyLower) {
+        case "training":
           if (VALID_POLICY_VALUES.has(value)) {
             currentAgentPolicy.training = value as PolicyValue;
           } else {
             warnings.push({ line: lineNum, field: "Training", message: `Invalid policy value: ${value}` });
           }
           break;
-        case "Scraping":
+        case "scraping":
           if (VALID_POLICY_VALUES.has(value)) {
             currentAgentPolicy.scraping = value as PolicyValue;
           } else {
             warnings.push({ line: lineNum, field: "Scraping", message: `Invalid policy value: ${value}` });
           }
           break;
-        case "Indexing":
+        case "indexing":
           if (VALID_POLICY_VALUES.has(value)) {
             currentAgentPolicy.indexing = value as PolicyValue;
           } else {
             warnings.push({ line: lineNum, field: "Indexing", message: `Invalid policy value: ${value}` });
           }
           break;
-        case "Caching":
+        case "caching":
           if (VALID_POLICY_VALUES.has(value)) {
             currentAgentPolicy.caching = value as PolicyValue;
           } else {
             warnings.push({ line: lineNum, field: "Caching", message: `Invalid policy value: ${value}` });
           }
           break;
-        case "Rate-Limit": {
+        case "rate-limit": {
           const rl = parseRateLimit(value);
           if (rl) {
             currentAgentPolicy.rateLimit = { requests: rl.requests, window: rl.window as RateLimitWindow };
@@ -135,40 +136,44 @@ export function parse(input: string): ParseResult {
     }
 
     const key = trimmed.slice(0, colonIdx).trim();
+    const keyLower = key.toLowerCase();
     const value = trimmed.slice(colonIdx + 1).trim();
 
-    switch (key) {
-      case "Site-Name": site.name = value; break;
-      case "Site-URL": site.url = value; break;
-      case "Description":
-      case "Site-Description": site.description = value; break;
-      case "Contact":
-      case "Site-Contact": site.contact = value; break;
-      case "Policy-URL": site.policyUrl = value; break;
+    switch (keyLower) {
+      case "spec-version": specVersion = value; break;
+      case "generated-at": generatedAt = value; break;
+
+      case "site-name": site.name = value; break;
+      case "site-url": site.url = value; break;
+      case "description":
+      case "site-description": site.description = value; break;
+      case "contact":
+      case "site-contact": site.contact = value; break;
+      case "policy-url": site.policyUrl = value; break;
 
       // Content policies
-      case "Training":
+      case "training":
         if (VALID_POLICY_VALUES.has(value)) {
           policies.training = value;
         } else {
           warnings.push({ line: lineNum, field: "Training", message: `Invalid policy value: ${value}` });
         }
         break;
-      case "Scraping":
+      case "scraping":
         if (VALID_POLICY_VALUES.has(value)) {
           policies.scraping = value;
         } else {
           warnings.push({ line: lineNum, field: "Scraping", message: `Invalid policy value: ${value}` });
         }
         break;
-      case "Indexing":
+      case "indexing":
         if (VALID_POLICY_VALUES.has(value)) {
           policies.indexing = value;
         } else {
           warnings.push({ line: lineNum, field: "Indexing", message: `Invalid policy value: ${value}` });
         }
         break;
-      case "Caching":
+      case "caching":
         if (VALID_POLICY_VALUES.has(value)) {
           policies.caching = value;
         } else {
@@ -177,22 +182,22 @@ export function parse(input: string): ParseResult {
         break;
 
       // Training paths
-      case "Training-Allow": trainingAllowPaths.push(value); break;
-      case "Training-Deny": trainingDenyPaths.push(value); break;
+      case "training-allow": trainingAllowPaths.push(value); break;
+      case "training-deny": trainingDenyPaths.push(value); break;
 
       // Licensing
-      case "Training-License": licensing.license = value; break;
-      case "Training-Fee": licensing.feeUrl = value; break;
+      case "training-license": licensing.license = value; break;
+      case "training-fee": licensing.feeUrl = value; break;
 
       // Content requirements
-      case "Attribution":
+      case "attribution":
         if (VALID_REQUIREMENT_LEVELS.has(value)) {
           content.attribution = value;
         } else {
           warnings.push({ line: lineNum, field: "Attribution", message: `Invalid requirement level: ${value}` });
         }
         break;
-      case "AI-Disclosure":
+      case "ai-disclosure":
         if (VALID_REQUIREMENT_LEVELS.has(value)) {
           content.aiDisclosure = value;
         } else {
@@ -201,25 +206,25 @@ export function parse(input: string): ParseResult {
         break;
 
       // Compliance
-      case "Audit":
+      case "audit":
         if (VALID_REQUIREMENT_LEVELS.has(value)) {
           compliance.audit = value;
         } else {
           warnings.push({ line: lineNum, field: "Audit", message: `Invalid requirement level: ${value}` });
         }
         break;
-      case "Audit-Format": compliance.auditFormat = value; break;
+      case "audit-format": compliance.auditFormat = value; break;
 
       // Cross-references
-      case "AI-JSON": metadata["AI-JSON"] = value; break;
-      case "Agents-TXT": metadata["Agents-TXT"] = value; break;
+      case "ai-json": metadata["AI-JSON"] = value; break;
+      case "agents-txt": metadata["Agents-TXT"] = value; break;
 
       // Agent block
-      case "Agent":
+      case "agent":
         if (!value) {
           warnings.push({ line: lineNum, field: "Agent", message: "Agent name must not be empty" });
         } else {
-          currentAgentName = value;
+          currentAgentName = value.toLowerCase();
           currentAgentPolicy = {};
           state = "IN_AGENT";
         }

@@ -106,7 +106,9 @@ Training-Fee: https://example.com/ai-licensing
 |----------|---------|----------|
 | `robots.txt` | "Don't crawl this" | Crawlers |
 | `ai.txt` | "Here's our AI policy" | **All AI systems** |
-| `agents.txt` | "Here's what agents can do" | AI agents with API access |
+| [`agents.txt`](https://github.com/kaylacar/agents-txt) | "Here's what agents can do" | AI agents with API access |
+
+`ai.txt` and [`agents.txt`](https://github.com/kaylacar/agents-txt) are companion standards by the same author. `ai.txt` covers policy (training, licensing, attribution). `agents.txt` covers capabilities (endpoints, auth, protocols). A site can serve both.
 
 ## Getting Started
 

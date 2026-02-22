@@ -96,19 +96,17 @@ Agents-TXT: https://example.com/.well-known/agents.txt
 
 ### Header Section
 
-These fields appear as comments at the top of the file:
-
 | Field | Required | Description |
 |-------|----------|-------------|
 | `Spec-Version` | Yes | Must be `1.0` |
-| `Generated` | No | ISO 8601 timestamp |
+| `Generated-At` | No | ISO 8601 timestamp of when the file was generated |
 
 Example:
 
 ```
 # ai.txt — AI Policy Declaration
 Spec-Version: 1.0
-Generated: 2026-02-21T00:00:00.000Z
+Generated-At: 2026-02-21T00:00:00.000Z
 ```
 
 ### Site Section
@@ -123,20 +121,20 @@ Generated: 2026-02-21T00:00:00.000Z
 
 ### Content Policy Fields
 
-These are the core policy declarations. Each accepts `allow`, `deny`, or `conditional`.
+These are the core policy declarations.
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `Training` | `deny` | Whether AI systems may use content for model training |
-| `Scraping` | `allow` | Whether AI agents may scrape/read content |
-| `Indexing` | `allow` | Whether AI systems may index content for retrieval |
-| `Caching` | `allow` | Whether AI systems may cache content |
+| Field | Default | Valid values | Description |
+|-------|---------|-------------|-------------|
+| `Training` | `deny` | `allow`, `deny`, `conditional` | Whether AI systems may use content for model training |
+| `Scraping` | `allow` | `allow`, `deny` | Whether AI agents may scrape/read content |
+| `Indexing` | `allow` | `allow`, `deny` | Whether AI systems may index content for retrieval |
+| `Caching` | `allow` | `allow`, `deny` | Whether AI systems may cache content |
 
 **Policy values:**
 
 - `allow` — Permitted without restriction
 - `deny` — Not permitted
-- `conditional` — Permitted under specific conditions (see Training Paths and Licensing)
+- `conditional` — Permitted under specific conditions; only valid for `Training` (see Training Paths and Licensing)
 
 ### Training Path Fields
 
@@ -155,6 +153,8 @@ Multiple `Training-Allow` and `Training-Deny` lines may appear. More specific pa
 |-------|-------------|
 | `Training-License` | SPDX license identifier for AI training use (e.g., `CC-BY-4.0`, `CC-BY-SA-4.0`, `LicenseRef-Custom`) |
 | `Training-Fee` | URL to commercial licensing/pricing page |
+
+When `Training-License` is `LicenseRef-Custom`, `Training-Fee` SHOULD be provided so agents have a path to understand the terms.
 
 ### Agent Blocks
 
@@ -184,6 +184,8 @@ Agent: GPTBot
 | `Rate-Limit` | Advisory rate limit in `N/window` format |
 
 **Rate-Limit windows:** `second`, `minute`, `hour`, `day`
+
+If a site serves both `ai.txt` and `agents.txt` and declares rate limits in both, the more restrictive limit applies.
 
 ### Content Requirement Fields
 

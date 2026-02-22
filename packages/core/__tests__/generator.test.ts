@@ -45,8 +45,8 @@ describe("generate", () => {
   it("generates header", () => {
     const output = generate(TEST_DOC);
     expect(output).toContain("# ai.txt");
-    expect(output).toContain("# Spec-Version: 1.0");
-    expect(output).toContain("# Generated: 2026-02-21T00:00:00.000Z");
+    expect(output).toContain("Spec-Version: 1.0");
+    expect(output).toContain("Generated-At: 2026-02-21T00:00:00.000Z");
   });
 
   it("generates site info", () => {

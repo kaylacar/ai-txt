@@ -12,6 +12,19 @@ Any website can drop an `ai.txt` file to tell AI systems:
 
 ## Quick Start
 
+### Generate with the CLI
+
+```bash
+npx @ai-txt/core generate --name "My Blog" --url https://myblog.com --training deny
+```
+
+### Check any site's policy
+
+```bash
+npx @ai-txt/core check https://example.com
+npx @ai-txt/core check https://example.com --agent ClaudeBot
+```
+
 ### For Site Owners
 
 Create `/.well-known/ai.txt` on your site:
@@ -123,7 +136,7 @@ What the fields mean:
 
 | Package | Description |
 |---------|-------------|
-| `@ai-txt/core` | Parser, generator, validator, resolver, and HTTP client |
+| `@ai-txt/core` | Parser, generator, validator, resolver, HTTP client, and CLI |
 | `@ai-txt/express` | Express middleware — one line to serve ai.txt |
 
 ## Specification
@@ -143,11 +156,11 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 ## Related Standards
 
-- [agents.txt](https://github.com/kaylacar/agents-txt) — declares what AI agents can DO on your site (capabilities, endpoints, protocols)
+- [agents.txt](https://github.com/kaylacar/agents-txt) — our companion standard that declares what AI agents can DO on your site (capabilities, endpoints, protocols)
 - `robots.txt` — controls crawling
 - `llms.txt` — provides content for LLMs to read
 
-`ai.txt` declares policy. `agents.txt` declares capabilities. They are complementary and can coexist on the same site.
+`ai.txt` declares policy. `agents.txt` declares capabilities. Both are by the same author and designed to work together — a site can serve both at `/.well-known/`.
 
 ## License
 

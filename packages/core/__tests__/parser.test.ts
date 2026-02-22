@@ -7,8 +7,8 @@ Site-URL: https://myblog.com
 `;
 
 const FULL_DOC = `# ai.txt — AI Policy Declaration
-# Spec-Version: 1.0
-# Generated: 2026-02-21T00:00:00.000Z
+Spec-Version: 1.0
+Generated-At: 2026-02-21T00:00:00.000Z
 
 Site-Name: News Daily
 Site-URL: https://newsdaily.com
@@ -101,15 +101,15 @@ describe("parse", () => {
     expect(lic.feeUrl).toBe("https://newsdaily.com/ai-licensing");
   });
 
-  it("parses agent policies", () => {
+  it("parses agent policies (names normalized to lowercase)", () => {
     const result = parse(FULL_DOC);
     const agents = result.document!.agents;
     expect(agents["*"].rateLimit?.requests).toBe(30);
     expect(agents["*"].rateLimit?.window).toBe("minute");
-    expect(agents["ClaudeBot"].training).toBe("allow");
-    expect(agents["ClaudeBot"].rateLimit?.requests).toBe(120);
-    expect(agents["GPTBot"].training).toBe("deny");
-    expect(agents["GPTBot"].scraping).toBe("deny");
+    expect(agents["claudebot"].training).toBe("allow");
+    expect(agents["claudebot"].rateLimit?.requests).toBe(120);
+    expect(agents["gptbot"].training).toBe("deny");
+    expect(agents["gptbot"].scraping).toBe("deny");
   });
 
   it("parses content requirements", () => {
@@ -260,5 +260,72 @@ Caching: deny
     expect(p.scraping).toBe("deny");
     expect(p.indexing).toBe("deny");
     expect(p.caching).toBe("deny");
+  });
+
+  // Case-insensitive parsing (spec requirement)
+  it("parses keys case-insensitively", () => {
+    const doc = `
+site-name: Lowercase Blog
+site-url: https://lowercase.com
+training: deny
+scraping: allow
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document!.site.name).toBe("Lowercase Blog");
+    expect(result.document!.site.url).toBe("https://lowercase.com");
+    expect(result.document!.policies.training).toBe("deny");
+    expect(result.document!.policies.scraping).toBe("allow");
+  });
+
+  it("parses mixed-case keys", () => {
+    const doc = `
+SITE-NAME: Uppercase Blog
+SITE-URL: https://uppercase.com
+TRAINING: allow
+training-license: MIT
+ATTRIBUTION: required
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document!.site.name).toBe("Uppercase Blog");
+    expect(result.document!.policies.training).toBe("allow");
+    expect(result.document!.licensing?.license).toBe("MIT");
+    expect(result.document!.content?.attribution).toBe("required");
+  });
+
+  it("normalizes agent names to lowercase", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: ClaudeBot
+  Training: allow
+Agent: GPTBot
+  Training: deny
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document!.agents["claudebot"]?.training).toBe("allow");
+    expect(result.document!.agents["gptbot"]?.training).toBe("deny");
+    // Original case should not exist
+    expect(result.document!.agents["ClaudeBot"]).toBeUndefined();
+    expect(result.document!.agents["GPTBot"]).toBeUndefined();
+  });
+
+  it("parses agent block fields case-insensitively", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+agent: mybot
+  training: allow
+  scraping: deny
+  rate-limit: 50/minute
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    const agent = result.document!.agents["mybot"];
+    expect(agent.training).toBe("allow");
+    expect(agent.scraping).toBe("deny");
+    expect(agent.rateLimit?.requests).toBe(50);
   });
 });
