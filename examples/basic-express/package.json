@@ -1,0 +1,12 @@
+{
+  "name": "ai-txt-example-basic",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@ai-txt/express": "workspace:*",
+    "express": "^5.1.0"
+  }
+}
