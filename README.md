@@ -154,13 +154,22 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 `ai.txt` fills that gap.
 
-## Related Standards
+## The Stack
 
-- [agents.txt](https://github.com/kaylacar/agents-txt) — our companion standard that declares what AI agents can DO on your site (capabilities, endpoints, protocols)
-- `robots.txt` — controls crawling
-- `llms.txt` — provides content for LLMs to read
+These four repos form a governance pipeline for AI agents on the internet: **declared, executed, proven.**
 
-`ai.txt` declares policy. `agents.txt` declares capabilities. Both are by the same author and designed to work together — a site can serve both at `/.well-known/`.
+| Repo | Purpose |
+|------|---------|
+| [agents.txt](https://github.com/kaylacar/agents-txt) | Declares what agents can do on a site |
+| **[ai.txt](https://github.com/kaylacar/ai-txt)** | **Declares AI policy — training, licensing, attribution** |
+| [agents-protocol](https://github.com/kaylacar/agents-protocol) | Execution SDK — how agents perform declared actions |
+| [rer](https://github.com/kaylacar/rer) | Cryptographic proof of what agents actually did |
+
+```
+declared (agents.txt / ai.txt) → executed (agents-protocol) → proven (rer)
+```
+
+All four are by the same author and designed to work together.
 
 ## License
 
