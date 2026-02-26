@@ -22,6 +22,18 @@ export function validate(doc: AiTxtDocument): ValidationResult {
     }
   }
 
+  // "conditional" is only valid for training (per spec)
+  const nonTrainingPolicies = ["scraping", "indexing", "caching"] as const;
+  for (const field of nonTrainingPolicies) {
+    if (doc.policies[field] === "conditional") {
+      warnings.push({
+        path: `policies.${field}`,
+        message: `"conditional" is only valid for training. Use "allow" or "deny" for ${field}.`,
+        code: "INVALID_CONDITIONAL_POLICY",
+      });
+    }
+  }
+
   // Training is "conditional" but no training paths defined
   if (doc.policies.training === "conditional") {
     if (!doc.trainingPaths || (doc.trainingPaths.allow.length === 0 && doc.trainingPaths.deny.length === 0)) {

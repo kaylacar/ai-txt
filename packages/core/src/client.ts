@@ -11,6 +11,8 @@ export interface ClientOptions {
   userAgent?: string;
   /** Cache TTL in ms. Default: 300000 (5 minutes). Set to 0 to disable. */
   cacheTtl?: number;
+  /** Maximum number of cached entries. Default: 1000. */
+  maxCacheSize?: number;
 }
 
 interface CacheEntry {
@@ -22,6 +24,7 @@ interface CacheEntry {
 const WELL_KNOWN_TXT = "/.well-known/ai.txt";
 const WELL_KNOWN_JSON = "/.well-known/ai.json";
 const DEFAULT_CACHE_TTL = 300_000; // 5 minutes
+const DEFAULT_MAX_CACHE_SIZE = 1000;
 
 /**
  * Client for discovering and fetching ai.txt from websites.
@@ -35,12 +38,14 @@ export class AiTxtClient {
   private timeout: number;
   private userAgent: string;
   private cacheTtl: number;
+  private maxCacheSize: number;
   private cache = new Map<string, CacheEntry>();
 
   constructor(options: ClientOptions = {}) {
     this.timeout = options.timeout ?? 10_000;
     this.userAgent = options.userAgent ?? "ai-txt-client/0.1";
     this.cacheTtl = options.cacheTtl ?? DEFAULT_CACHE_TTL;
+    this.maxCacheSize = options.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE;
   }
 
   /**
@@ -154,6 +159,12 @@ export class AiTxtClient {
   private setCache(key: string, result: ParseResult, etag?: string): void {
     if (this.cacheTtl <= 0) return;
 
+    // Evict oldest entries when cache exceeds max size
+    if (this.cache.size >= this.maxCacheSize && !this.cache.has(key)) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) this.cache.delete(oldest);
+    }
+
     this.cache.set(key, {
       result,
       etag,
@@ -179,7 +190,14 @@ export class AiTxtClient {
       const response = await fetch(url, {
         headers,
         signal: controller.signal,
+        redirect: "follow",
       });
+
+      // Validate that the final URL is still HTTPS (prevents SSRF via redirect)
+      const finalUrl = response.url || url;
+      if (!finalUrl.startsWith("https://") && !finalUrl.startsWith("http://localhost")) {
+        return null;
+      }
 
       // 304 Not Modified — cache is still valid, extend TTL
       if (response.status === 304 && cached) {

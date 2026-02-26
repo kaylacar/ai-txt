@@ -14,6 +14,9 @@ app.use(
     },
     policies: {
       training: "conditional",
+      scraping: "allow",
+      indexing: "allow",
+      caching: "allow",
     },
     trainingPaths: {
       allow: ["/articles/free/*"],

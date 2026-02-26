@@ -131,4 +131,111 @@ describe("aiTxt middleware", () => {
     const text = await res.text();
     expect(text).toContain("Attribution: required");
   });
+
+  it("sets Vary header", async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/.well-known/ai.txt`);
+    expect(res.headers.get("vary")).toContain("Origin");
+  });
+
+  it("sets Access-Control-Allow-Methods header", async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/.well-known/ai.txt`);
+    expect(res.headers.get("access-control-allow-methods")).toContain("GET");
+    expect(res.headers.get("access-control-allow-methods")).toContain("HEAD");
+    expect(res.headers.get("access-control-allow-methods")).toContain("OPTIONS");
+  });
+
+  it("handles HEAD requests with correct headers and no body", async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/.well-known/ai.txt`, { method: "HEAD" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/plain");
+    expect(res.headers.get("content-length")).toBeTruthy();
+    const body = await res.text();
+    expect(body).toBe("");
+  });
+
+  it("handles HEAD requests for JSON endpoint", async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/.well-known/ai.json`, { method: "HEAD" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    const body = await res.text();
+    expect(body).toBe("");
+  });
+});
+
+// ── Custom paths and CORS ──
+
+describe("aiTxt middleware with custom config", () => {
+  let customApp: ReturnType<typeof express>;
+  let customServer: Server;
+  let customPort: number;
+
+  beforeAll(async () => {
+    customApp = express();
+    customApp.use(
+      aiTxt({
+        site: {
+          name: "Custom Site",
+          url: "https://custom.com",
+        },
+        policies: {
+          training: "deny",
+          scraping: "allow",
+          indexing: "allow",
+          caching: "allow",
+        },
+        paths: {
+          txt: "/custom/ai.txt",
+          json: "/custom/ai.json",
+        },
+        corsOrigins: ["https://allowed.com", "https://also-allowed.com"],
+      }),
+    );
+
+    customApp.get("/", (_req, res) => res.send("ok"));
+
+    await new Promise<void>((resolve) => {
+      customServer = customApp.listen(0, () => {
+        const addr = customServer.address() as { port: number };
+        customPort = addr.port;
+        resolve();
+      });
+    });
+  });
+
+  afterAll(() => {
+    customServer?.close();
+  });
+
+  it("serves at custom txt path", async () => {
+    const res = await fetch(`http://127.0.0.1:${customPort}/custom/ai.txt`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("Site-Name: Custom Site");
+  });
+
+  it("serves at custom json path", async () => {
+    const res = await fetch(`http://127.0.0.1:${customPort}/custom/ai.json`);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.site.name).toBe("Custom Site");
+  });
+
+  it("does not serve at default paths when custom paths are set", async () => {
+    const res = await fetch(`http://127.0.0.1:${customPort}/.well-known/ai.txt`);
+    // Should fall through to 404 since no route handles it
+    expect(res.status).not.toBe(200);
+  });
+
+  it("sets CORS for allowed origin", async () => {
+    const res = await fetch(`http://127.0.0.1:${customPort}/custom/ai.txt`, {
+      headers: { Origin: "https://allowed.com" },
+    });
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://allowed.com");
+  });
+
+  it("does not set CORS for disallowed origin", async () => {
+    const res = await fetch(`http://127.0.0.1:${customPort}/custom/ai.txt`, {
+      headers: { Origin: "https://evil.com" },
+    });
+    expect(res.headers.get("access-control-allow-origin")).toBeNull();
+  });
 });

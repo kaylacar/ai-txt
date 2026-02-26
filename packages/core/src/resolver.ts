@@ -168,7 +168,15 @@ export function matchPath(
  *   - `/public/*.html` matches `/public/index.html`
  */
 export function globMatch(path: string, pattern: string): boolean {
-  const regexStr = pattern
+  // Reject patterns longer than 1000 chars to prevent pathological regex
+  if (pattern.length > 1000 || path.length > 2000) return false;
+
+  // Replace placeholder chars in input to prevent collision with our internal markers
+  const sanitized = pattern
+    .replace(/\u0001/g, "")
+    .replace(/\u0002/g, "");
+
+  const regexStr = sanitized
     .replace(/([.+?^${}()|[\]\\])/g, "\\$1")  // escape regex chars (not *)
     .replace(/\/\*\*\//g, "\u0001")             // /**/ → placeholder (zero or more segments)
     .replace(/\*\*/g, "\u0002")                 // ** → placeholder (anything including /)
@@ -176,6 +184,10 @@ export function globMatch(path: string, pattern: string): boolean {
     .replace(/\u0001/g, "(?:/.+)?/")            // restore /**/ as optional segments
     .replace(/\u0002/g, ".*");                  // restore ** as any chars
 
-  const regex = new RegExp(`^${regexStr}$`);
-  return regex.test(path);
+  try {
+    const regex = new RegExp(`^${regexStr}$`);
+    return regex.test(path);
+  } catch {
+    return false;
+  }
 }
