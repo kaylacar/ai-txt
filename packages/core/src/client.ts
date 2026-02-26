@@ -53,12 +53,13 @@ export class AiTxtClient {
     }
     const normalized = baseUrl.replace(/\/+$/, "");
 
-    // Check cache
-    const cached = this.getCached(normalized);
-    if (cached) return cached;
+    // Check cache (try JSON key first, then text key)
+    const cachedJson = this.getCached(`${normalized}${WELL_KNOWN_JSON}`);
+    if (cachedJson) return cachedJson;
+    const cachedTxt = this.getCached(`${normalized}${WELL_KNOWN_TXT}`);
+    if (cachedTxt) return cachedTxt;
 
     // Try JSON first (preferred by spec), fall back to text
-    // fetchAndParse handles caching internally (preserves ETag + server TTL)
     const jsonResult = await this.fetchAndParse(`${normalized}${WELL_KNOWN_JSON}`, "json");
     if (jsonResult?.success) return jsonResult;
 
@@ -169,9 +170,8 @@ export class AiTxtClient {
         "User-Agent": this.userAgent,
       };
 
-      // Send If-None-Match if we have a cached ETag for this URL
-      const baseUrl = url.replace(/\/.well-known\/ai\.(txt|json)$/, "");
-      const cached = this.cache.get(baseUrl);
+      // Send If-None-Match if we have a cached ETag for this endpoint
+      const cached = this.cache.get(url);
       if (cached?.etag) {
         headers["If-None-Match"] = cached.etag;
       }
@@ -201,15 +201,15 @@ export class AiTxtClient {
         const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
         if (maxAgeMatch) {
           const serverTtl = parseInt(maxAgeMatch[1], 10) * 1000;
-          this.setCache(baseUrl, result, etag);
-          const entry = this.cache.get(baseUrl);
+          this.setCache(url, result, etag);
+          const entry = this.cache.get(url);
           if (entry) entry.expiresAt = Date.now() + serverTtl;
           return result;
         }
       }
 
       if (result.success) {
-        this.setCache(baseUrl, result, etag);
+        this.setCache(url, result, etag);
       }
 
       return result;
