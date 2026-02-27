@@ -4,7 +4,13 @@ import { AiTxtDocumentSchema } from "./schema.js";
 /**
  * Parse an ai.json string into a validated AiTxtDocument.
  */
+const MAX_INPUT_SIZE = 1_048_576; // 1 MB
+
 export function parseJSON(input: string): ParseResult {
+  if (input.length > MAX_INPUT_SIZE) {
+    return { success: false, errors: [{ message: `Input too large (${input.length} bytes). Maximum is ${MAX_INPUT_SIZE} bytes.` }], warnings: [] };
+  }
+
   let raw: unknown;
   try {
     raw = JSON.parse(input);

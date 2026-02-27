@@ -52,8 +52,19 @@ export class AiTxtClient {
    * Discover ai.txt from a site. Tries ai.json first, falls back to ai.txt.
    * Results are cached per the configured TTL.
    */
+  private static isAllowedUrl(urlStr: string): boolean {
+    try {
+      const parsed = new URL(urlStr);
+      if (parsed.protocol === "https:") return true;
+      if (parsed.protocol === "http:" && (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   async discover(baseUrl: string): Promise<ParseResult> {
-    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+    if (!AiTxtClient.isAllowedUrl(baseUrl)) {
       return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
     }
     const normalized = baseUrl.replace(/\/+$/, "");
@@ -83,7 +94,7 @@ export class AiTxtClient {
    * Discover ai.json from a site at /.well-known/ai.json.
    */
   async discoverJSON(baseUrl: string): Promise<ParseResult> {
-    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+    if (!AiTxtClient.isAllowedUrl(baseUrl)) {
       return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
     }
     const normalized = baseUrl.replace(/\/+$/, "");
@@ -102,14 +113,14 @@ export class AiTxtClient {
    * Discover a site's ai.txt and resolve the effective policy for this agent.
    * Returns the fully merged policy (agent override → wildcard → site-wide).
    */
-  async check(baseUrl: string): Promise<{ success: boolean; policy?: ResolvedPolicy; errors: Array<{ message: string }> }> {
+  async check(baseUrl: string, agentName?: string): Promise<{ success: boolean; policy?: ResolvedPolicy; errors: Array<{ message: string }> }> {
     const result = await this.discover(baseUrl);
 
     if (!result.success || !result.document) {
       return { success: false, errors: result.errors };
     }
 
-    const policy = resolve(result.document, this.userAgent);
+    const policy = resolve(result.document, agentName ?? this.userAgent);
     return { success: true, policy, errors: [] };
   }
 
@@ -124,6 +135,7 @@ export class AiTxtClient {
     baseUrl: string,
     field: "training" | "scraping" | "indexing" | "caching",
     path?: string,
+    agentName?: string,
   ): Promise<{ success: boolean; access?: AccessResult; errors: Array<{ message: string }> }> {
     const result = await this.discover(baseUrl);
 
@@ -131,7 +143,7 @@ export class AiTxtClient {
       return { success: false, errors: result.errors };
     }
 
-    const access = canAccess(result.document, this.userAgent, field, path);
+    const access = canAccess(result.document, agentName ?? this.userAgent, field, path);
     return { success: true, access, errors: [] };
   }
 
@@ -194,8 +206,8 @@ export class AiTxtClient {
       });
 
       // Validate that the final URL is still HTTPS (prevents SSRF via redirect)
-      const finalUrl = response.url || url;
-      if (!finalUrl.startsWith("https://") && !finalUrl.startsWith("http://localhost")) {
+      const finalUrl = response.url;
+      if (finalUrl && !AiTxtClient.isAllowedUrl(finalUrl)) {
         return null;
       }
 
@@ -213,21 +225,25 @@ export class AiTxtClient {
       // Store ETag for future revalidation
       const etag = response.headers.get("etag") ?? undefined;
 
-      // Parse Cache-Control max-age if present
+      // Respect Cache-Control directives
       const cacheControl = response.headers.get("cache-control");
-      if (cacheControl && result.success) {
-        const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
-        if (maxAgeMatch) {
-          const serverTtl = parseInt(maxAgeMatch[1], 10) * 1000;
-          this.setCache(url, result, etag);
-          const entry = this.cache.get(url);
-          if (entry) entry.expiresAt = Date.now() + serverTtl;
-          return result;
-        }
-      }
+      const noStore = cacheControl && /\bno-store\b/i.test(cacheControl);
+      const noCache = cacheControl && /\bno-cache\b/i.test(cacheControl);
 
-      if (result.success) {
-        this.setCache(url, result, etag);
+      if (result.success && !noStore) {
+        if (cacheControl && !noCache) {
+          const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+          if (maxAgeMatch) {
+            const serverTtl = parseInt(maxAgeMatch[1], 10) * 1000;
+            this.setCache(url, result, etag);
+            const entry = this.cache.get(url);
+            if (entry) entry.expiresAt = Date.now() + serverTtl;
+            return result;
+          }
+        }
+        if (!noCache) {
+          this.setCache(url, result, etag);
+        }
       }
 
       return result;

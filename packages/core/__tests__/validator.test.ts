@@ -85,42 +85,45 @@ describe("validate", () => {
 
   // ── Bug #1: conditional on non-training fields ──
 
-  it("warns when conditional is used for scraping", () => {
+  it("errors when conditional is used for scraping", () => {
     const doc: AiTxtDocument = {
       ...VALID_DOC,
       policies: { ...VALID_DOC.policies, scraping: "conditional" as any },
     };
     const result = validate(doc);
-    expect(result.warnings.some((w) => w.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
-    expect(result.warnings.some((w) => w.path === "policies.scraping")).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+    expect(result.errors.some((e) => e.path === "policies.scraping")).toBe(true);
   });
 
-  it("warns when conditional is used for indexing", () => {
+  it("errors when conditional is used for indexing", () => {
     const doc: AiTxtDocument = {
       ...VALID_DOC,
       policies: { ...VALID_DOC.policies, indexing: "conditional" as any },
     };
     const result = validate(doc);
-    expect(result.warnings.some((w) => w.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
   });
 
-  it("warns when conditional is used for caching", () => {
+  it("errors when conditional is used for caching", () => {
     const doc: AiTxtDocument = {
       ...VALID_DOC,
       policies: { ...VALID_DOC.policies, caching: "conditional" as any },
     };
     const result = validate(doc);
-    expect(result.warnings.some((w) => w.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
   });
 
-  it("no conditional warning for training field", () => {
+  it("no conditional error for training field", () => {
     const doc: AiTxtDocument = {
       ...VALID_DOC,
       policies: { ...VALID_DOC.policies, training: "conditional" },
       trainingPaths: { allow: ["/blog/*"], deny: [] },
     };
     const result = validate(doc);
-    expect(result.warnings.some((w) => w.code === "INVALID_CONDITIONAL_POLICY")).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(false);
   });
 
   // ── Schema validation errors ──

@@ -67,8 +67,8 @@ export function resolve(doc: AiTxtDocument, agentName: string): ResolvedPolicy {
   const rateLimit = agentBlock.rateLimit ?? wildcardBlock.rateLimit;
   if (rateLimit) resolved.rateLimit = rateLimit;
 
-  // Content requirements are site-wide, pass through
-  if (doc.content) resolved.content = doc.content;
+  // Content requirements are site-wide, shallow-copy to avoid leaking a reference
+  if (doc.content) resolved.content = { ...doc.content };
 
   return resolved;
 }

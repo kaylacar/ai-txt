@@ -18,7 +18,13 @@ const VALID_REQUIREMENT_LEVELS = new Set(["required", "recommended", "optional",
 /**
  * Parse an ai.txt text document into a structured AiTxtDocument.
  */
+const MAX_INPUT_SIZE = 1_048_576; // 1 MB
+
 export function parse(input: string): ParseResult {
+  if (input.length > MAX_INPUT_SIZE) {
+    return { success: false, errors: [{ message: `Input too large (${input.length} bytes). Maximum is ${MAX_INPUT_SIZE} bytes.` }], warnings: [] };
+  }
+
   const errors: ParseError[] = [];
   const warnings: ParseWarning[] = [];
   const lines = input.split(/\r?\n/);
@@ -56,9 +62,15 @@ export function parse(input: string): ParseResult {
     // Skip empty lines and comments (accept legacy # Spec-Version / # Generated for backward compat)
     if (trimmed === "" || trimmed.startsWith("#")) {
       const specMatch = trimmed.match(/^#\s*Spec-Version:\s*(.+)/i);
-      if (specMatch) specVersion = specMatch[1].trim();
+      if (specMatch) {
+        specVersion = specMatch[1].trim();
+        warnings.push({ line: lineNum, message: "Spec-Version found in comment — use a top-level field instead" });
+      }
       const genMatch = trimmed.match(/^#\s*Generated(?:-At)?:\s*(.+)/i);
-      if (genMatch) generatedAt = genMatch[1].trim();
+      if (genMatch) {
+        generatedAt = genMatch[1].trim();
+        warnings.push({ line: lineNum, message: "Generated-At found in comment — use a top-level field instead" });
+      }
       continue;
     }
 
@@ -224,7 +236,11 @@ export function parse(input: string): ParseResult {
         if (!value) {
           warnings.push({ line: lineNum, field: "Agent", message: "Agent name must not be empty" });
         } else {
-          currentAgentName = value.toLowerCase();
+          const normalizedAgent = value.toLowerCase();
+          if (agents[normalizedAgent]) {
+            warnings.push({ line: lineNum, field: "Agent", message: `Duplicate Agent block "${value}" — previous block will be overwritten` });
+          }
+          currentAgentName = normalizedAgent;
           currentAgentPolicy = {};
           state = "IN_AGENT";
         }
