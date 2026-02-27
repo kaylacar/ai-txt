@@ -41,6 +41,22 @@ describe("sanitizeValue", () => {
   it("handles empty string", () => {
     expect(sanitizeValue("")).toBe("");
   });
+
+  it("strips Unicode C1 control characters (U+0080–U+009F)", () => {
+    expect(sanitizeValue("hello\x80world")).toBe("helloworld");
+    expect(sanitizeValue("test\x9Fvalue")).toBe("testvalue");
+  });
+
+  it("strips bidirectional override characters", () => {
+    expect(sanitizeValue("hello\u202Aworld")).toBe("helloworld");
+    expect(sanitizeValue("test\u202Evalue")).toBe("testvalue");
+  });
+
+  it("strips zero-width characters", () => {
+    expect(sanitizeValue("hello\u200Bworld")).toBe("helloworld");
+    expect(sanitizeValue("test\uFEFFvalue")).toBe("testvalue");
+    expect(sanitizeValue("a\u200Fb")).toBe("ab");
+  });
 });
 
 describe("parseRateLimit", () => {

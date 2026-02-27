@@ -491,4 +491,51 @@ Site-URL:   https://test.com
     expect(result.document?.site.name).toBe("Spacey Name");
     expect(result.document?.site.url).toBe("https://test.com");
   });
+
+  // ── New behavior tests ──
+
+  it("warns on duplicate Agent blocks", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: MyBot
+  Training: allow
+Agent: mybot
+  Training: deny
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Duplicate Agent block"))).toBe(true);
+    // Second block should win
+    expect(result.document!.agents["mybot"].training).toBe("deny");
+  });
+
+  it("rejects input exceeding size limit", () => {
+    const huge = `Site-Name: Test\nSite-URL: https://test.com\n` + "X: ".padEnd(1_100_000, "a");
+    const result = parse(huge);
+    expect(result.success).toBe(false);
+    expect(result.errors[0].message).toContain("too large");
+  });
+
+  it("warns on comment-style Spec-Version", () => {
+    const doc = `
+# Spec-Version: 1.0
+Site-Name: Test
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Spec-Version found in comment"))).toBe(true);
+  });
+
+  it("warns on comment-style Generated-At", () => {
+    const doc = `
+# Generated-At: 2026-01-01T00:00:00.000Z
+Site-Name: Test
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Generated-At found in comment"))).toBe(true);
+  });
 });

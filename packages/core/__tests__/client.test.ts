@@ -17,10 +17,11 @@ Training: deny
 function mockFetch(responses: Record<string, { status: number; body: string; headers?: Record<string, string> }>) {
   return vi.fn(async (url: string) => {
     const resp = responses[url];
-    if (!resp) return { ok: false, status: 404, text: async () => "", headers: new Headers() };
+    if (!resp) return { ok: false, status: 404, url, text: async () => "", headers: new Headers() };
     return {
       ok: resp.status >= 200 && resp.status < 300,
       status: resp.status,
+      url,
       text: async () => resp.body,
       headers: new Headers(resp.headers ?? {}),
     };
@@ -140,6 +141,7 @@ describe("AiTxtClient", () => {
         return {
           ok: true,
           status: 200,
+          url,
           text: async () => VALID_JSON,
           headers: new Headers({ ETag: '"abc123"' }),
         };
@@ -149,6 +151,7 @@ describe("AiTxtClient", () => {
       return {
         ok: false,
         status: 304,
+        url,
         text: async () => "",
         headers: new Headers(),
       };
@@ -377,9 +380,9 @@ describe("AiTxtClient", () => {
 
   it("sends User-Agent header on requests", async () => {
     const calls: any[] = [];
-    globalThis.fetch = vi.fn(async (url: string, init: any) => {
-      calls.push({ url, headers: init?.headers });
-      return { ok: true, status: 200, url, text: async () => VALID_JSON, headers: new Headers() };
+    globalThis.fetch = vi.fn(async (reqUrl: string, init: any) => {
+      calls.push({ url: reqUrl, headers: init?.headers });
+      return { ok: true, status: 200, url: reqUrl, text: async () => VALID_JSON, headers: new Headers() };
     }) as any;
 
     const client = new AiTxtClient({ userAgent: "MyCustomBot/1.0" });
@@ -391,10 +394,10 @@ describe("AiTxtClient", () => {
   // ── Cache eviction ──
 
   it("evicts oldest cache entry when max size exceeded", async () => {
-    const fetchMock = vi.fn(async (url: string) => ({
+    const fetchMock = vi.fn(async (reqUrl: string) => ({
       ok: true,
       status: 200,
-      url,
+      url: reqUrl,
       text: async () => VALID_JSON,
       headers: new Headers(),
     })) as any;
@@ -427,5 +430,98 @@ describe("AiTxtClient", () => {
     const client = new AiTxtClient();
     const result = await client.discover("https://test.com");
     expect(result.success).toBe(false);
+  });
+
+  it("rejects responses with empty/missing response.url (fail closed)", async () => {
+    globalThis.fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      url: "",  // empty — could mean redirect URL unknown
+      text: async () => VALID_JSON,
+      headers: new Headers(),
+    })) as any;
+
+    const client = new AiTxtClient();
+    const result = await client.discover("https://test.com");
+    expect(result.success).toBe(false);
+  });
+
+  // ── Cache-Control directives ──
+
+  it("does not cache when Cache-Control: no-store is present", async () => {
+    const fetchMock = mockFetch({
+      "https://test.com/.well-known/ai.json": {
+        status: 200,
+        body: VALID_JSON,
+        headers: { "Cache-Control": "no-store" },
+      },
+    }) as any;
+    globalThis.fetch = fetchMock;
+
+    const client = new AiTxtClient({ cacheTtl: 60_000 });
+
+    await client.discover("https://test.com");
+    await client.discover("https://test.com");
+
+    // Should fetch twice — no-store means don't cache
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not cache when Cache-Control: no-cache is present", async () => {
+    const fetchMock = mockFetch({
+      "https://test.com/.well-known/ai.json": {
+        status: 200,
+        body: VALID_JSON,
+        headers: { "Cache-Control": "no-cache" },
+      },
+    }) as any;
+    globalThis.fetch = fetchMock;
+
+    const client = new AiTxtClient({ cacheTtl: 60_000 });
+
+    await client.discover("https://test.com");
+    await client.discover("https://test.com");
+
+    // Should fetch twice — no-cache means don't use cached version
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  // ── SSRF: localhost domain confusion ──
+
+  it("rejects http://localhost.attacker.com (domain confusion)", async () => {
+    const client = new AiTxtClient();
+    const result = await client.discover("http://localhost.attacker.com");
+    expect(result.success).toBe(false);
+    expect(result.errors[0].message).toContain("HTTPS");
+  });
+
+  it("allows http://127.0.0.1 for development", async () => {
+    globalThis.fetch = mockFetch({
+      "http://127.0.0.1:3000/.well-known/ai.json": { status: 200, body: VALID_JSON },
+    }) as any;
+
+    const client = new AiTxtClient();
+    const result = await client.discover("http://127.0.0.1:3000");
+    expect(result.success).toBe(true);
+  });
+
+  // ── check() with explicit agentName ──
+
+  it("check() uses explicit agentName over userAgent", async () => {
+    const json = JSON.stringify({
+      specVersion: "1.0",
+      site: { name: "Test", url: "https://test.com" },
+      policies: { training: "deny", scraping: "allow", indexing: "allow", caching: "allow" },
+      agents: { "*": {}, claudebot: { training: "allow" } },
+    });
+
+    globalThis.fetch = mockFetch({
+      "https://test.com/.well-known/ai.json": { status: 200, body: json },
+    }) as any;
+
+    const client = new AiTxtClient({ userAgent: "generic-client" });
+    const { policy } = await client.check("https://test.com", "ClaudeBot");
+
+    expect(policy?.training).toBe("allow"); // resolved for ClaudeBot, not generic-client
   });
 });

@@ -206,8 +206,9 @@ export class AiTxtClient {
       });
 
       // Validate that the final URL is still HTTPS (prevents SSRF via redirect)
+      // Fail closed: if we can't determine the final URL, reject the response
       const finalUrl = response.url;
-      if (finalUrl && !AiTxtClient.isAllowedUrl(finalUrl)) {
+      if (!finalUrl || !AiTxtClient.isAllowedUrl(finalUrl)) {
         return null;
       }
 

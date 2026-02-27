@@ -22,7 +22,7 @@ const MAX_INPUT_SIZE = 1_048_576; // 1 MB
 
 export function parse(input: string): ParseResult {
   if (input.length > MAX_INPUT_SIZE) {
-    return { success: false, errors: [{ message: `Input too large (${input.length} bytes). Maximum is ${MAX_INPUT_SIZE} bytes.` }], warnings: [] };
+    return { success: false, errors: [{ message: `Input too large (${input.length} characters). Maximum is ${MAX_INPUT_SIZE}.` }], warnings: [] };
   }
 
   const errors: ParseError[] = [];

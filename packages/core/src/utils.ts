@@ -6,7 +6,7 @@ export function sanitizeValue(value: unknown, maxLength = 500): string {
   const str = typeof value === "string" ? value : String(value ?? "");
   return str
     .replace(/[\r\n]/g, " ")
-    .replace(/[\x00-\x1f]/g, "")
+    .replace(/[\x00-\x1f\x7f-\x9f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g, "")
     .trim()
     .slice(0, maxLength);
 }

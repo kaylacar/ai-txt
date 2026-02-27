@@ -126,6 +126,38 @@ describe("validate", () => {
     expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(false);
   });
 
+  // ── Spec-Version validation ──
+
+  it("warns on unrecognized Spec-Version", () => {
+    const doc: AiTxtDocument = { ...VALID_DOC, specVersion: "2.0" };
+    const result = validate(doc);
+    expect(result.warnings.some((w) => w.code === "UNKNOWN_SPEC_VERSION")).toBe(true);
+  });
+
+  it("no spec-version warning for 1.0", () => {
+    const result = validate(VALID_DOC);
+    expect(result.warnings.some((w) => w.code === "UNKNOWN_SPEC_VERSION")).toBe(false);
+  });
+
+  // ── Audit field validation ──
+
+  it("warns when Audit uses 'recommended' (not in spec)", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      compliance: { audit: "recommended" },
+    };
+    const result = validate(doc);
+    expect(result.warnings.some((w) => w.code === "INVALID_AUDIT_VALUE")).toBe(true);
+  });
+
+  it("no audit warning for 'required', 'optional', or 'none'", () => {
+    for (const value of ["required", "optional", "none"] as const) {
+      const doc: AiTxtDocument = { ...VALID_DOC, compliance: { audit: value } };
+      const result = validate(doc);
+      expect(result.warnings.some((w) => w.code === "INVALID_AUDIT_VALUE")).toBe(false);
+    }
+  });
+
   // ── Schema validation errors ──
 
   it("reports schema error for invalid specVersion format", () => {
