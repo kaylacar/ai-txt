@@ -26,7 +26,7 @@ Drop a file at `/.well-known/ai.txt`:
 
 ```
 # ai.txt
-# Spec-Version: 1.0
+Spec-Version: 1.0
 
 Site-Name: News Daily
 Site-URL: https://newsdaily.com

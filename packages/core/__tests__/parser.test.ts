@@ -328,4 +328,214 @@ agent: mybot
     expect(agent.scraping).toBe("deny");
     expect(agent.rateLimit?.requests).toBe(50);
   });
+
+  // ── Edge cases ──
+
+  it("handles CRLF line endings", () => {
+    const doc = "Site-Name: Test\r\nSite-URL: https://test.com\r\nTraining: deny\r\n";
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.site.name).toBe("Test");
+    expect(result.document?.policies.training).toBe("deny");
+  });
+
+  it("handles tab-indented agent blocks", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: tabbot
+\tTraining: allow
+\tRate-Limit: 50/minute
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    const agent = result.document!.agents["tabbot"];
+    expect(agent.training).toBe("allow");
+    expect(agent.rateLimit?.requests).toBe(50);
+  });
+
+  it("warns on unparseable top-level lines (no colon)", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+this line has no colon
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Unparseable line"))).toBe(true);
+  });
+
+  it("warns on unparseable indented lines in agent blocks", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: mybot
+  no colon here either
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Unparseable indented line"))).toBe(true);
+  });
+
+  it("warns on unknown agent fields", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: mybot
+  Custom-Field: value
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Unknown agent field"))).toBe(true);
+  });
+
+  it("last definition wins for duplicate keys", () => {
+    const doc = `
+Site-Name: First
+Site-URL: https://first.com
+Site-Name: Second
+Site-URL: https://second.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.site.name).toBe("Second");
+    expect(result.document?.site.url).toBe("https://second.com");
+  });
+
+  it("second agent block with same name overwrites first", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: mybot
+  Training: allow
+Agent: MyBot
+  Training: deny
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    // Both normalize to "mybot", second wins
+    expect(result.document!.agents["mybot"].training).toBe("deny");
+  });
+
+  it("stores generic unknown keys as metadata", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Custom-Header: my-value
+X-Extra: another-value
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.metadata?.["Custom-Header"]).toBe("my-value");
+    expect(result.document?.metadata?.["X-Extra"]).toBe("another-value");
+  });
+
+  it("parses Spec-Version from comment lines (legacy format)", () => {
+    const doc = `
+# Spec-Version: 2.0
+# Generated-At: 2026-01-01T00:00:00.000Z
+Site-Name: Test
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.specVersion).toBe("2.0");
+    expect(result.document?.generatedAt).toBe("2026-01-01T00:00:00.000Z");
+  });
+
+  it("warns on invalid rate limit formats", () => {
+    const cases = ["abc/minute", "60/weekly", "noslash", "/minute", "60/"];
+    for (const rl of cases) {
+      const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: bot
+  Rate-Limit: ${rl}
+`;
+      const result = parse(doc);
+      expect(result.success).toBe(true);
+      expect(result.warnings.some((w) => w.message.includes("Invalid rate limit"))).toBe(true);
+    }
+  });
+
+  it("warns on invalid agent policy values", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: mybot
+  Training: maybe
+  Scraping: perhaps
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.filter((w) => w.message.includes("Invalid policy value")).length).toBe(2);
+  });
+
+  it("handles values containing colons", () => {
+    const doc = `
+Site-Name: My Site: The Best
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.site.name).toBe("My Site: The Best");
+  });
+
+  it("trims whitespace from values", () => {
+    const doc = `
+Site-Name:   Spacey Name
+Site-URL:   https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.document?.site.name).toBe("Spacey Name");
+    expect(result.document?.site.url).toBe("https://test.com");
+  });
+
+  // ── New behavior tests ──
+
+  it("warns on duplicate Agent blocks", () => {
+    const doc = `
+Site-Name: Test
+Site-URL: https://test.com
+Agent: MyBot
+  Training: allow
+Agent: mybot
+  Training: deny
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Duplicate Agent block"))).toBe(true);
+    // Second block should win
+    expect(result.document!.agents["mybot"].training).toBe("deny");
+  });
+
+  it("rejects input exceeding size limit", () => {
+    const huge = `Site-Name: Test\nSite-URL: https://test.com\n` + "X: ".padEnd(1_100_000, "a");
+    const result = parse(huge);
+    expect(result.success).toBe(false);
+    expect(result.errors[0].message).toContain("too large");
+  });
+
+  it("warns on comment-style Spec-Version", () => {
+    const doc = `
+# Spec-Version: 1.0
+Site-Name: Test
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Spec-Version found in comment"))).toBe(true);
+  });
+
+  it("warns on comment-style Generated-At", () => {
+    const doc = `
+# Generated-At: 2026-01-01T00:00:00.000Z
+Site-Name: Test
+Site-URL: https://test.com
+`;
+    const result = parse(doc);
+    expect(result.success).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes("Generated-At found in comment"))).toBe(true);
+  });
 });

@@ -145,7 +145,7 @@ When `Training` is `conditional`, these fields specify which paths are included 
 | `Training-Allow` | Glob pattern for paths where training is permitted |
 | `Training-Deny` | Glob pattern for paths where training is denied |
 
-Multiple `Training-Allow` and `Training-Deny` lines may appear. More specific patterns take precedence.
+Multiple `Training-Allow` and `Training-Deny` lines may appear. Deny patterns take precedence over allow patterns: if a path matches both a `Training-Allow` and a `Training-Deny` pattern, access is denied. Paths that match no pattern are denied by default.
 
 ### Licensing Fields
 
@@ -191,8 +191,8 @@ If a site serves both `ai.txt` and `agents.txt` and declares rate limits in both
 
 | Field | Values | Description |
 |-------|--------|-------------|
-| `Attribution` | `required`, `recommended`, `none` | Whether AI outputs using this content must attribute the source |
-| `AI-Disclosure` | `required`, `recommended`, `none` | Whether AI-generated content derived from this site must be disclosed as AI-generated |
+| `Attribution` | `required`, `recommended`, `optional`, `none` | Whether AI outputs using this content must attribute the source |
+| `AI-Disclosure` | `required`, `recommended`, `optional`, `none` | Whether AI-generated content derived from this site must be disclosed as AI-generated |
 
 ### Compliance Fields
 

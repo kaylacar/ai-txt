@@ -11,6 +11,8 @@ export interface ClientOptions {
   userAgent?: string;
   /** Cache TTL in ms. Default: 300000 (5 minutes). Set to 0 to disable. */
   cacheTtl?: number;
+  /** Maximum number of cached entries. Default: 1000. */
+  maxCacheSize?: number;
 }
 
 interface CacheEntry {
@@ -22,6 +24,7 @@ interface CacheEntry {
 const WELL_KNOWN_TXT = "/.well-known/ai.txt";
 const WELL_KNOWN_JSON = "/.well-known/ai.json";
 const DEFAULT_CACHE_TTL = 300_000; // 5 minutes
+const DEFAULT_MAX_CACHE_SIZE = 1000;
 
 /**
  * Client for discovering and fetching ai.txt from websites.
@@ -35,30 +38,44 @@ export class AiTxtClient {
   private timeout: number;
   private userAgent: string;
   private cacheTtl: number;
+  private maxCacheSize: number;
   private cache = new Map<string, CacheEntry>();
 
   constructor(options: ClientOptions = {}) {
     this.timeout = options.timeout ?? 10_000;
     this.userAgent = options.userAgent ?? "ai-txt-client/0.1";
     this.cacheTtl = options.cacheTtl ?? DEFAULT_CACHE_TTL;
+    this.maxCacheSize = options.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE;
   }
 
   /**
    * Discover ai.txt from a site. Tries ai.json first, falls back to ai.txt.
    * Results are cached per the configured TTL.
    */
+  private static isAllowedUrl(urlStr: string): boolean {
+    try {
+      const parsed = new URL(urlStr);
+      if (parsed.protocol === "https:") return true;
+      if (parsed.protocol === "http:" && (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   async discover(baseUrl: string): Promise<ParseResult> {
-    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+    if (!AiTxtClient.isAllowedUrl(baseUrl)) {
       return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
     }
     const normalized = baseUrl.replace(/\/+$/, "");
 
-    // Check cache
-    const cached = this.getCached(normalized);
-    if (cached) return cached;
+    // Check cache (try JSON key first, then text key)
+    const cachedJson = this.getCached(`${normalized}${WELL_KNOWN_JSON}`);
+    if (cachedJson) return cachedJson;
+    const cachedTxt = this.getCached(`${normalized}${WELL_KNOWN_TXT}`);
+    if (cachedTxt) return cachedTxt;
 
     // Try JSON first (preferred by spec), fall back to text
-    // fetchAndParse handles caching internally (preserves ETag + server TTL)
     const jsonResult = await this.fetchAndParse(`${normalized}${WELL_KNOWN_JSON}`, "json");
     if (jsonResult?.success) return jsonResult;
 
@@ -77,7 +94,7 @@ export class AiTxtClient {
    * Discover ai.json from a site at /.well-known/ai.json.
    */
   async discoverJSON(baseUrl: string): Promise<ParseResult> {
-    if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://localhost")) {
+    if (!AiTxtClient.isAllowedUrl(baseUrl)) {
       return { success: false, errors: [{ message: "Only HTTPS URLs are supported (per spec security requirements)" }], warnings: [] };
     }
     const normalized = baseUrl.replace(/\/+$/, "");
@@ -96,14 +113,14 @@ export class AiTxtClient {
    * Discover a site's ai.txt and resolve the effective policy for this agent.
    * Returns the fully merged policy (agent override → wildcard → site-wide).
    */
-  async check(baseUrl: string): Promise<{ success: boolean; policy?: ResolvedPolicy; errors: Array<{ message: string }> }> {
+  async check(baseUrl: string, agentName?: string): Promise<{ success: boolean; policy?: ResolvedPolicy; errors: Array<{ message: string }> }> {
     const result = await this.discover(baseUrl);
 
     if (!result.success || !result.document) {
       return { success: false, errors: result.errors };
     }
 
-    const policy = resolve(result.document, this.userAgent);
+    const policy = resolve(result.document, agentName ?? this.userAgent);
     return { success: true, policy, errors: [] };
   }
 
@@ -118,6 +135,7 @@ export class AiTxtClient {
     baseUrl: string,
     field: "training" | "scraping" | "indexing" | "caching",
     path?: string,
+    agentName?: string,
   ): Promise<{ success: boolean; access?: AccessResult; errors: Array<{ message: string }> }> {
     const result = await this.discover(baseUrl);
 
@@ -125,7 +143,7 @@ export class AiTxtClient {
       return { success: false, errors: result.errors };
     }
 
-    const access = canAccess(result.document, this.userAgent, field, path);
+    const access = canAccess(result.document, agentName ?? this.userAgent, field, path);
     return { success: true, access, errors: [] };
   }
 
@@ -153,6 +171,12 @@ export class AiTxtClient {
   private setCache(key: string, result: ParseResult, etag?: string): void {
     if (this.cacheTtl <= 0) return;
 
+    // Evict oldest entries when cache exceeds max size
+    if (this.cache.size >= this.maxCacheSize && !this.cache.has(key)) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) this.cache.delete(oldest);
+    }
+
     this.cache.set(key, {
       result,
       etag,
@@ -169,9 +193,8 @@ export class AiTxtClient {
         "User-Agent": this.userAgent,
       };
 
-      // Send If-None-Match if we have a cached ETag for this URL
-      const baseUrl = url.replace(/\/.well-known\/ai\.(txt|json)$/, "");
-      const cached = this.cache.get(baseUrl);
+      // Send If-None-Match if we have a cached ETag for this endpoint
+      const cached = this.cache.get(url);
       if (cached?.etag) {
         headers["If-None-Match"] = cached.etag;
       }
@@ -179,7 +202,15 @@ export class AiTxtClient {
       const response = await fetch(url, {
         headers,
         signal: controller.signal,
+        redirect: "follow",
       });
+
+      // Validate that the final URL is still HTTPS (prevents SSRF via redirect)
+      // Fail closed: if we can't determine the final URL, reject the response
+      const finalUrl = response.url;
+      if (!finalUrl || !AiTxtClient.isAllowedUrl(finalUrl)) {
+        return null;
+      }
 
       // 304 Not Modified — cache is still valid, extend TTL
       if (response.status === 304 && cached) {
@@ -195,21 +226,25 @@ export class AiTxtClient {
       // Store ETag for future revalidation
       const etag = response.headers.get("etag") ?? undefined;
 
-      // Parse Cache-Control max-age if present
+      // Respect Cache-Control directives
       const cacheControl = response.headers.get("cache-control");
-      if (cacheControl && result.success) {
-        const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
-        if (maxAgeMatch) {
-          const serverTtl = parseInt(maxAgeMatch[1], 10) * 1000;
-          this.setCache(baseUrl, result, etag);
-          const entry = this.cache.get(baseUrl);
-          if (entry) entry.expiresAt = Date.now() + serverTtl;
-          return result;
-        }
-      }
+      const noStore = cacheControl && /\bno-store\b/i.test(cacheControl);
+      const noCache = cacheControl && /\bno-cache\b/i.test(cacheControl);
 
-      if (result.success) {
-        this.setCache(baseUrl, result, etag);
+      if (result.success && !noStore) {
+        if (cacheControl && !noCache) {
+          const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+          if (maxAgeMatch) {
+            const serverTtl = parseInt(maxAgeMatch[1], 10) * 1000;
+            this.setCache(url, result, etag);
+            const entry = this.cache.get(url);
+            if (entry) entry.expiresAt = Date.now() + serverTtl;
+            return result;
+          }
+        }
+        if (!noCache) {
+          this.setCache(url, result, etag);
+        }
       }
 
       return result;
