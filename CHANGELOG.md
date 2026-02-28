@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.0.0 (2026-02-28)
+
+Promoted to 1.0.0 to align package versions with the ai.txt spec version (1.0).
+
+### @ai-txt/core
+
+- **Security:** Client enforces response body size limit (default 1 MB)
+- **Security:** Client limits cache size (default 1000 entries) with oldest-first eviction
+- Updated default User-Agent to `ai-txt-client/1.0`
+- New `maxResponseSize` and `maxCacheSize` client options
+
+### @ai-txt/express
+
+- **Security:** Middleware applies safe defaults for omitted policy fields (training→deny, scraping/indexing/caching→allow)
+- **Fix:** `peerDependenciesMeta` marks express as required (not optional)
+- Added vitest config so tests resolve `@ai-txt/core` from source (no build step needed)
+
+### Examples
+
+- **Security:** Escaped `req.params.slug` to prevent reflected XSS
+- Added missing `scraping`, `indexing`, `caching` fields to policies
+
+### CI
+
+- Added GitHub Actions workflow (test + typecheck + build on Node 18/20/22)
+
+---
+
 ## 0.1.0 (2026-02-22)
 
 Initial release of the ai.txt standard and reference implementation.

@@ -7,7 +7,7 @@ import type { ResolvedPolicy, AccessResult } from "./resolver.js";
 export interface ClientOptions {
   /** Request timeout in ms. Default: 10000. */
   timeout?: number;
-  /** User-Agent header. Default: "ai-txt-client/0.1". */
+  /** User-Agent header. Default: "ai-txt-client/1.0". */
   userAgent?: string;
   /** Cache TTL in ms. Default: 300000 (5 minutes). Set to 0 to disable. */
   cacheTtl?: number;
@@ -47,7 +47,7 @@ export class AiTxtClient {
 
   constructor(options: ClientOptions = {}) {
     this.timeout = options.timeout ?? 10_000;
-    this.userAgent = options.userAgent ?? "ai-txt-client/0.1";
+    this.userAgent = options.userAgent ?? "ai-txt-client/1.0";
     this.cacheTtl = options.cacheTtl ?? DEFAULT_CACHE_TTL;
     this.maxResponseSize = options.maxResponseSize ?? DEFAULT_MAX_RESPONSE_SIZE;
     this.maxCacheSize = options.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE;

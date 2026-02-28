@@ -243,4 +243,81 @@ describe("AiTxtClient", () => {
     const result = await client.discover("http://localhost:3000");
     expect(result.success).toBe(true);
   });
+
+  it("rejects responses exceeding maxResponseSize via Content-Length", async () => {
+    globalThis.fetch = mockFetch({
+      "https://test.com/.well-known/ai.json": {
+        status: 200,
+        body: VALID_JSON,
+        headers: { "Content-Length": "2000000" },
+      },
+    }) as any;
+
+    const client = new AiTxtClient({ maxResponseSize: 1024 });
+    const result = await client.discover("https://test.com");
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects responses exceeding maxResponseSize via body length", async () => {
+    const hugeBody = "x".repeat(2048);
+    globalThis.fetch = mockFetch({
+      "https://test.com/.well-known/ai.json": { status: 200, body: hugeBody },
+    }) as any;
+
+    const client = new AiTxtClient({ maxResponseSize: 1024 });
+    const result = await client.discover("https://test.com");
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts responses within maxResponseSize", async () => {
+    globalThis.fetch = mockFetch({
+      "https://test.com/.well-known/ai.json": {
+        status: 200,
+        body: VALID_JSON,
+        headers: { "Content-Length": String(VALID_JSON.length) },
+      },
+    }) as any;
+
+    const client = new AiTxtClient({ maxResponseSize: 1_048_576 });
+    const result = await client.discover("https://test.com");
+    expect(result.success).toBe(true);
+  });
+
+  it("evicts oldest cache entry when maxCacheSize is exceeded", async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn(async (url: string) => {
+      callCount++;
+      return {
+        ok: true,
+        status: 200,
+        text: async () => VALID_JSON,
+        headers: new Headers(),
+      };
+    }) as any;
+
+    const client = new AiTxtClient({ maxCacheSize: 2 });
+
+    // Fill cache with 2 entries
+    await client.discover("https://a.com");
+    await client.discover("https://b.com");
+    expect(callCount).toBe(2); // 1 fetch each (json succeeds)
+
+    // Both should be cached
+    await client.discover("https://a.com");
+    await client.discover("https://b.com");
+    expect(callCount).toBe(2); // no new fetches
+
+    // Add a third — should evict "a.com"
+    await client.discover("https://c.com");
+    expect(callCount).toBe(3);
+
+    // "a.com" evicted, should re-fetch
+    await client.discover("https://a.com");
+    expect(callCount).toBe(4);
+
+    // "b.com" should still be cached (it was second, "a" was evicted)
+    // Actually "b.com" was evicted when "a.com" was re-added. Let's check "c.com"
+    await client.discover("https://c.com");
+    expect(callCount).toBe(4); // still cached
+  });
 });
