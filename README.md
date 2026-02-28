@@ -1,10 +1,10 @@
 # ai.txt
 
-**An open standard for declaring AI policy. Readable by humans. Readable by agents.**
+**A standard way for websites to connect with AI agents.**
 
-`robots.txt` controls crawling. `agents.txt` declares capabilities. **`ai.txt` sets the rules for AI agents interacting with your site.**
+AI agents don't just crawl your site — they read it, act on it, and come back every day. They need to know your rules. `ai.txt` is a single file that tells them: what they can train on, how to attribute you, what's off-limits, and which agents get what access.
 
-AI agents are arriving. They search, summarize, compare, and act on your content in real time — and they prefer sites with clear, machine-readable policies. `ai.txt` is how your site tells every agent what's allowed:
+Agents that find an `ai.txt` know how to behave. Sites that publish one get discovered, understood, and preferred. It's SEO for the agent era.
 
 - **Per-agent rules**: Different policies for different AI agents — compliant agents get preferred access
 - **Training**: Can AI train on this content? Allow / Deny / Conditional

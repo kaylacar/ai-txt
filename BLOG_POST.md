@@ -1,12 +1,12 @@
-# ai.txt: The Standard That Makes Your Site Readable to AI Agents
+# ai.txt: How Websites Connect with AI Agents
 
 ## TL;DR
 
-AI agents need ongoing access to your site — to search, summarize, compare, and act on your content. They prefer sites with clear, machine-readable rules. `ai.txt` is an open standard that lets any website declare its AI policy: training permissions, licensing terms, per-agent rules, and attribution requirements — in one file that every agent reads automatically.
+AI agents are the new visitors. They don't just crawl — they read, summarize, buy, and come back constantly. But right now there's no standard way for a site to tell them the rules.
 
-Think of it as structured data for the agent era. Sites with `ai.txt` get discovered, understood, and preferred by agents. Sites without it are opaque.
+`ai.txt` fixes that. One file at `/.well-known/ai.txt` tells every agent: what they can train on, how to attribute you, which agents get access, and under what terms. Agents discover it automatically — like structured data, but for AI.
 
-**robots.txt controls crawling. agents.txt declares capabilities. ai.txt sets the rules agents follow.**
+Sites that publish `ai.txt` get discovered, understood, and preferred. It's SEO for the agent era.
 
 ## The Problem
 
