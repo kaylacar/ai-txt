@@ -1,5 +1,7 @@
 # ai.txt
 
+[![CI](https://github.com/kaylacar/ai-txt/actions/workflows/ci.yml/badge.svg)](https://github.com/kaylacar/ai-txt/actions/workflows/ci.yml)
+
 **An open standard for AI policy declaration.**
 
 `robots.txt` controls crawling. `agents.txt` declares capabilities. **`ai.txt` declares AI policy.**
