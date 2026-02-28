@@ -1,24 +1,24 @@
-# ai.txt: Every Website Needs an AI Policy. Now There's a Standard for It.
+# ai.txt: The Standard That Makes Your Site Readable to AI Agents
 
 ## TL;DR
 
-`ai.txt` is an open standard that lets any website declare its AI policy in a machine-readable file. Training permissions, licensing terms, per-agent rules, attribution requirements — in one file that AI systems can read automatically.
+AI agents need ongoing access to your site — to search, summarize, compare, and act on your content. They prefer sites with clear, machine-readable rules. `ai.txt` is an open standard that lets any website declare its AI policy: training permissions, licensing terms, per-agent rules, and attribution requirements — in one file that every agent reads automatically.
 
-**robots.txt controls crawling. agents.txt declares capabilities. ai.txt declares AI policy.**
+Think of it as structured data for the agent era. Sites with `ai.txt` get discovered, understood, and preferred by agents. Sites without it are opaque.
+
+**robots.txt controls crawling. agents.txt declares capabilities. ai.txt sets the rules agents follow.**
 
 ## The Problem
 
-The New York Times sued OpenAI. Reddit sold its data for $60M. Stack Overflow licensed content to Google. Every week, another fight over AI training on web content.
+AI agents are replacing crawlers. They don't just index your site — they read it, summarize it, act on it, and come back constantly. But there's no standard way to tell them the rules. Every site is making it up: custom headers, terms of service in legalese, or blocking everything and hoping for the best.
 
-But there's no standard way for a website to say: "You can crawl my content, but you cannot train on it."
-
-`robots.txt` is binary — block or allow crawling. It can't express:
+Meanwhile, the training question still has no answer. The New York Times sued OpenAI. Reddit sold its data for $60M. Stack Overflow licensed content to Google. `robots.txt` is binary — block or allow crawling. It can't express:
 - "Crawl yes, train no"
 - "Train allowed under CC-BY-4.0"
 - "Claude can train, GPT cannot"
 - "Free articles are open, premium articles are not"
 
-Every publisher, blogger, and site owner needs these controls. None of them have them.
+Every site owner needs these controls — for both agents and training. None of them have them.
 
 ## The Solution
 
@@ -46,18 +46,18 @@ Agent: GPTBot
 Attribution: required
 ```
 
-That's it. Machine-readable. Any AI system can check this file before interacting with the site.
+That's it. Machine-readable. Agents check this before every interaction — and prefer sites that have it.
 
 ## Who This Is For
 
-**Every website.** Not just sites with APIs. Not just tech companies.
+**Every website.** Not just sites with APIs. Not just tech companies. If agents are going to interact with your content, you should be the one setting the terms.
 
-- **Bloggers**: "Don't train on my content" — 3 lines
-- **News publishers**: "Train on free articles only, under CC-BY-4.0, attribution required"
-- **E-commerce**: "AI can index products, but not cache pricing"
-- **Corporations**: "No AI training, no scraping, audit required"
-- **Open source projects**: "Train freely under MIT"
-- **Artists & photographers**: "No training, no indexing, no caching"
+- **Bloggers**: "No training, no caching" — 3 lines, and agents that check will respect it
+- **News publishers**: "Compliant agents get free articles under CC-BY-4.0 with attribution"
+- **E-commerce**: "Agents can index products but not cache pricing. Rate limits per agent."
+- **Corporations**: "No AI training, no scraping, audit trail required"
+- **Open source projects**: "Train freely under MIT — with proper attribution"
+- **Artists & photographers**: "No training, no indexing, no caching. Clear signal to every agent."
 
 ## How It Works
 
@@ -105,7 +105,7 @@ Training-Fee: https://example.com/ai-licensing
 | Standard | Purpose | Audience |
 |----------|---------|----------|
 | `robots.txt` | "Don't crawl this" | Crawlers |
-| `ai.txt` | "Here's our AI policy" | **All AI systems** |
+| `ai.txt` | "Here are the rules — agents that comply get preferred access" | **All AI systems** |
 | [`agents.txt`](https://github.com/kaylacar/agents-txt) | "Here's what agents can do" | AI agents with API access |
 
 `ai.txt` and [`agents.txt`](https://github.com/kaylacar/agents-txt) are companion standards by the same author. `ai.txt` covers policy (training, licensing, attribution). `agents.txt` covers capabilities (endpoints, auth, protocols). A site can serve both.

@@ -1,13 +1,14 @@
 # ai.txt
 
-**An open standard for AI policy declaration.**
+**An open standard for declaring AI policy. Readable by humans. Readable by agents.**
 
-`robots.txt` controls crawling. `agents.txt` declares capabilities. **`ai.txt` declares AI policy.**
+`robots.txt` controls crawling. `agents.txt` declares capabilities. **`ai.txt` sets the rules for AI agents interacting with your site.**
 
-Any website can drop an `ai.txt` file to tell AI systems:
+AI agents are arriving. They search, summarize, compare, and act on your content in real time — and they prefer sites with clear, machine-readable policies. `ai.txt` is how your site tells every agent what's allowed:
+
+- **Per-agent rules**: Different policies for different AI agents — compliant agents get preferred access
 - **Training**: Can AI train on this content? Allow / Deny / Conditional
 - **Licensing**: Under what license? (SPDX identifiers like CC-BY-4.0)
-- **Per-agent rules**: Different policies for different AI agents
 - **Requirements**: Attribution, AI disclosure, audit compliance
 
 ## Quick Start
@@ -37,7 +38,7 @@ Site-URL: https://myblog.com
 Training: deny
 ```
 
-Compliant AI systems will read this and respect the declared policy.
+AI agents check this file before interacting with your site. Sites with clear policies get better agent behavior.
 
 ### More Examples
 
@@ -95,9 +96,9 @@ app.use(aiTxt({
 // Now serves /.well-known/ai.txt and /.well-known/ai.json automatically
 ```
 
-## If you are an AI agent
+## For AI Agent Developers
 
-Fetch the policy before interacting with any site:
+Agents should fetch the policy before interacting with any site. Sites with `ai.txt` are telling you their rules — respecting them is how agents earn trust and continued access.
 
 ```
 GET https://example.com/.well-known/ai.json
@@ -145,18 +146,15 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 ## Why ai.txt?
 
-`robots.txt` can block a crawler but cannot express "you may crawl but not train on this content." There is no existing machine-readable standard for a website to declare:
+AI agents need ongoing access to your site. Unlike a training crawler that scrapes once, agents come back constantly — to search, answer questions, compare prices, book appointments. That means they need to know your rules, and they'll prefer sites that make those rules clear.
 
-- Training permitted under CC-BY-4.0
-- Claude may train, GPT may not
-- Free content is open, premium content is not
-- Attribution is required for all AI-derived content
+`ai.txt` is structured policy data for the agent era. Think of it as SEO for AI agents: sites that publish clear, machine-readable policies get discovered, understood, and ranked favorably by agents. Sites without it are opaque.
 
-`ai.txt` fills that gap.
+It also fills a gap `robots.txt` can't: there's no existing standard for a website to declare training permitted under CC-BY-4.0, that Claude may train but GPT may not, or that free content is open but premium content is not. `ai.txt` handles all of it.
 
 ## The Stack
 
-These four repos form a governance pipeline for AI agents on the internet: **declared, executed, proven.**
+These four repos form a governance pipeline for AI agents on the internet: **declared, executed, proven.** Agents that operate within this stack build trust with site owners. Agents that don't can be identified and deprioritized.
 
 | Repo | Purpose |
 |------|---------|
