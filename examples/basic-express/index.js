@@ -3,6 +3,15 @@ import { aiTxt } from "@ai-txt/express";
 
 const app = express();
 
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 app.use(
   aiTxt({
     site: {
@@ -14,6 +23,9 @@ app.use(
     },
     policies: {
       training: "conditional",
+      scraping: "allow",
+      indexing: "allow",
+      caching: "allow",
     },
     trainingPaths: {
       allow: ["/articles/free/*"],
@@ -70,11 +82,12 @@ app.get("/", (_req, res) => {
 
 // Free article — training allowed per trainingPaths
 app.get("/articles/free/:slug", (req, res) => {
+  const slug = escapeHtml(req.params.slug);
   res.type("html").send(`<!DOCTYPE html>
 <html>
-<head><title>${req.params.slug} — News Daily</title></head>
+<head><title>${slug} — News Daily</title></head>
 <body>
-<h1>${req.params.slug}</h1>
+<h1>${slug}</h1>
 <p>This is a free article. Training is <strong>allowed</strong> on this path (/articles/free/*).</p>
 <p>License: CC-BY-4.0. Attribution required.</p>
 <a href="/">← Back</a>
@@ -84,11 +97,12 @@ app.get("/articles/free/:slug", (req, res) => {
 
 // Premium article — training denied per trainingPaths
 app.get("/articles/premium/:slug", (req, res) => {
+  const slug = escapeHtml(req.params.slug);
   res.type("html").send(`<!DOCTYPE html>
 <html>
-<head><title>${req.params.slug} — News Daily</title></head>
+<head><title>${slug} — News Daily</title></head>
 <body>
-<h1>${req.params.slug}</h1>
+<h1>${slug}</h1>
 <p>This is a premium article. Training is <strong>denied</strong> on this path (/articles/premium/*).</p>
 <p>For AI training licensing: <a href="/ai-licensing">/ai-licensing</a></p>
 <a href="/">← Back</a>

@@ -28,7 +28,12 @@ export function aiTxt(options: AiTxtOptions) {
     specVersion: "1.0",
     generatedAt: new Date().toISOString(),
     site: options.site,
-    policies: options.policies,
+    policies: {
+      training: options.policies.training ?? "deny",
+      scraping: options.policies.scraping ?? "allow",
+      indexing: options.policies.indexing ?? "allow",
+      caching: options.policies.caching ?? "allow",
+    },
     trainingPaths: options.trainingPaths,
     licensing: options.licensing,
     agents: options.agents ?? { "*": {} },
