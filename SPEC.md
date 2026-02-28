@@ -145,7 +145,7 @@ When `Training` is `conditional`, these fields specify which paths are included 
 | `Training-Allow` | Glob pattern for paths where training is permitted |
 | `Training-Deny` | Glob pattern for paths where training is denied |
 
-Multiple `Training-Allow` and `Training-Deny` lines may appear. More specific patterns take precedence.
+Multiple `Training-Allow` and `Training-Deny` lines may appear. If a path matches both an allow and a deny pattern, the deny pattern takes precedence.
 
 ### Licensing Fields
 

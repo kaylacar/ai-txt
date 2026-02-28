@@ -24,30 +24,29 @@ export interface AiTxtOptions {
 }
 
 export function aiTxt(options: AiTxtOptions) {
-  const doc: AiTxtDocument = {
-    specVersion: "1.0",
-    generatedAt: new Date().toISOString(),
-    site: options.site,
-    policies: {
-      training: options.policies.training ?? "deny",
-      scraping: options.policies.scraping ?? "allow",
-      indexing: options.policies.indexing ?? "allow",
-      caching: options.policies.caching ?? "allow",
-    },
-    trainingPaths: options.trainingPaths,
-    licensing: options.licensing,
-    agents: options.agents ?? { "*": {} },
-    content: options.content,
-    compliance: options.compliance,
-  };
-
-  const txtContent = generate(doc);
-  const jsonContent = generateJSON(doc);
-
   const txtPath = options.paths?.txt ?? "/.well-known/ai.txt";
   const jsonPath = options.paths?.json ?? "/.well-known/ai.json";
 
   const corsOrigins = options.corsOrigins ?? ["*"];
+
+  function buildDoc(): AiTxtDocument {
+    return {
+      specVersion: "1.0",
+      generatedAt: new Date().toISOString(),
+      site: options.site,
+      policies: {
+        training: options.policies.training ?? "deny",
+        scraping: options.policies.scraping ?? "allow",
+        indexing: options.policies.indexing ?? "allow",
+        caching: options.policies.caching ?? "allow",
+      },
+      trainingPaths: options.trainingPaths,
+      licensing: options.licensing,
+      agents: options.agents ?? { "*": {} },
+      content: options.content,
+      compliance: options.compliance,
+    };
+  }
 
   return function aiTxtMiddleware(req: Request, res: Response, next: NextFunction): void {
     if (req.path !== txtPath && req.path !== jsonPath) {
@@ -75,15 +74,18 @@ export function aiTxt(options: AiTxtOptions) {
       return;
     }
 
+    // Generate fresh content per request so generatedAt is current
+    const doc = buildDoc();
+
     // Serve content
     if (req.path === txtPath) {
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
       res.setHeader("Cache-Control", "public, max-age=300");
-      res.send(txtContent);
+      res.send(generate(doc));
     } else {
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       res.setHeader("Cache-Control", "public, max-age=300");
-      res.send(jsonContent);
+      res.send(generateJSON(doc));
     }
   };
 }
