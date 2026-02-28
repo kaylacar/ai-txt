@@ -1,6 +1,6 @@
 {
   "name": "@ai-txt/express",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Express middleware for serving ai.txt — one line to declare your site's AI policy",
   "type": "module",
   "main": "./dist/index.cjs",

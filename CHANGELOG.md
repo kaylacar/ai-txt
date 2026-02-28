@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.0 (2026-02-28)
+
+Stable release — spec and implementation aligned at v1.0.
+
+### @ai-txt/core
+
+- Promoted to v1.0.0 stable (no API changes from 0.1.0)
+
+### @ai-txt/express
+
+- Promoted to v1.0.0 stable (no API changes from 0.1.0)
+
+---
+
 ## 0.1.0 (2026-02-22)
 
 Initial release of the ai.txt standard and reference implementation.
