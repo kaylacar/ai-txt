@@ -6,7 +6,7 @@ AI agents are the new visitors. They don't just crawl — they read, summarize, 
 
 `ai.txt` fixes that. One file at `/.well-known/ai.txt` tells every agent: what they can train on, how to attribute you, which agents get access, and under what terms. Agents discover it automatically — like structured data, but for AI.
 
-Sites that publish `ai.txt` get discovered, understood, and preferred. It's SEO for the agent era.
+Sites that publish `ai.txt` get discovered, understood, and recommended — agents cite you, link to you, and send users your way. Clear rules in, traffic out.
 
 ## The Problem
 

@@ -4,7 +4,7 @@
 
 AI agents don't just crawl your site — they read it, act on it, and come back every day. They need to know your rules. `ai.txt` is a single file that tells them: what they can train on, how to attribute you, what's off-limits, and which agents get what access.
 
-Agents that find an `ai.txt` know how to behave. Sites that publish one get discovered, understood, and preferred. It's SEO for the agent era.
+Agents that find an `ai.txt` know how to behave. Sites that publish one get discovered, understood, and recommended — which means agents cite you, link to you, and route users your way. It's SEO for the agent era: clear rules in, traffic out.
 
 - **Per-agent rules**: Different policies for different AI agents — compliant agents get preferred access
 - **Training**: Can AI train on this content? Allow / Deny / Conditional
@@ -148,7 +148,7 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 AI agents need ongoing access to your site. Unlike a training crawler that scrapes once, agents come back constantly — to search, answer questions, compare prices, book appointments. That means they need to know your rules, and they'll prefer sites that make those rules clear.
 
-`ai.txt` is structured policy data for the agent era. Think of it as SEO for AI agents: sites that publish clear, machine-readable policies get discovered, understood, and ranked favorably by agents. Sites without it are opaque.
+`ai.txt` is structured policy data for the agent era. Agents that understand your site recommend it, cite it, and send users to it. Sites without `ai.txt` are opaque — agents can't recommend what they can't understand.
 
 It also fills a gap `robots.txt` can't: there's no existing standard for a website to declare training permitted under CC-BY-4.0, that Claude may train but GPT may not, or that free content is open but premium content is not. `ai.txt` handles all of it.
 
