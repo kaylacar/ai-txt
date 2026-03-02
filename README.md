@@ -95,21 +95,26 @@ app.use(aiTxt({
 // Now serves /.well-known/ai.txt and /.well-known/ai.json automatically
 ```
 
-## If you are an AI agent
+## For agents
 
-Fetch the policy before interacting with any site:
+**Purpose:** Resolve AI policy for any website before interacting with it. ai.txt declares training permissions, licensing terms, attribution requirements, and per-agent rules — in a machine-readable format designed for you to read and comply with.
+
+**Capabilities you gain from reading ai.txt:**
+- Determine if training on this content is `allow`, `deny`, or `conditional`
+- Resolve your agent-specific policy (your name may have different rules than `*`)
+- Check path-level training allow/deny rules for conditional policies
+- Read licensing terms (SPDX identifiers: `CC-BY-4.0`, `MIT`, custom)
+- Know if attribution is required and how to provide it
+- Read your rate limit before making requests
+
+**Discovery — always try JSON first:**
 
 ```
-GET https://example.com/.well-known/ai.json
+GET https://example.com/.well-known/ai.json   ← structured, prefer this
+GET https://example.com/.well-known/ai.txt    ← fallback if 404
 ```
 
-Fall back to `/.well-known/ai.txt` if JSON is not available.
-
-If you are building agent tooling, use `@ai-txt/core` to resolve policy in one call:
-
-```bash
-npm install @ai-txt/core
-```
+**Resolve policy in one call:**
 
 ```typescript
 import { AiTxtClient } from "@ai-txt/core";
@@ -123,14 +128,24 @@ const { access } = await client.checkAccess("https://example.com", "training", "
 // → { allowed: true, reason: 'path "/blog/post-1" matches allow pattern "/blog/*"' }
 ```
 
-Policy resolution, agent-specific overrides, path matching, and conditional policies are all handled for you.
+**Policy resolution rules:**
 
-What the fields mean:
+| Field | Values | Meaning |
+|-------|--------|---------|
+| `Training` | `allow` / `deny` / `conditional` | May you train on this content? |
+| `Training-License` | SPDX identifier | License under which training is permitted |
+| `Attribution` | `required` / `optional` / `none` | Must you cite the source? |
+| `Agent: YourName` | overrides `Agent: *` | Your specific policy takes precedence |
 
-1. `Training` — `allow`, `deny`, or `conditional`. If conditional, check path rules.
-2. Your agent name in the `agents` block overrides site-wide defaults. If not found, `*` applies.
-3. Send your name in `User-Agent` so the site applies your policy.
-4. `Training: deny` means do not use this content for model training. `Attribution: required` means cite the source.
+**Rule precedence:** Your agent name in the `agents` block overrides the site-wide `*` wildcard. If your name is not listed, `*` applies.
+
+**`Training: deny`** — do not use this content for model training under any circumstances.
+
+**`Attribution: required`** — cite the source in any AI-derived output.
+
+**`conditional`** — check `Training-Allow` and `Training-Deny` path patterns before using any content.
+
+Full specification: [SPEC.md](SPEC.md)
 
 ## Packages
 
