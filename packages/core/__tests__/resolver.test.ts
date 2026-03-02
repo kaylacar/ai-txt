@@ -255,4 +255,59 @@ describe("matchPath", () => {
     expect(result.allowed).toBe(false);
     expect(result.reason).toContain("does not match");
   });
+
+  it("handles empty allow and deny lists", () => {
+    const result = matchPath("/anything", [], []);
+    expect(result.allowed).toBe(false);
+  });
+});
+
+// ── Additional globMatch edge cases ──
+
+describe("globMatch edge cases", () => {
+  it("handles empty pattern", () => {
+    expect(globMatch("", "")).toBe(true);
+    expect(globMatch("/blog", "")).toBe(false);
+  });
+
+  it("handles empty path", () => {
+    expect(globMatch("", "/blog/*")).toBe(false);
+  });
+
+  it("handles trailing slash", () => {
+    expect(globMatch("/blog/", "/blog/")).toBe(true);
+    expect(globMatch("/blog/", "/blog/*")).toBe(true);
+    expect(globMatch("/blog", "/blog/")).toBe(false);
+  });
+
+  it("handles multiple ** segments", () => {
+    expect(globMatch("/a/b/c/d/e", "/a/**/c/**/e")).toBe(true);
+    expect(globMatch("/a/c/e", "/a/**/c/**/e")).toBe(true);
+  });
+
+  it("rejects patterns longer than 1000 chars", () => {
+    const longPattern = "/blog/" + "*".repeat(1001);
+    expect(globMatch("/blog/post", longPattern)).toBe(false);
+  });
+
+  it("rejects paths longer than 2000 chars", () => {
+    const longPath = "/blog/" + "a".repeat(2001);
+    expect(globMatch(longPath, "/blog/**")).toBe(false);
+  });
+
+  it("handles patterns with placeholder chars safely", () => {
+    // Patterns containing \u0001 or \u0002 should not break the matcher
+    const result = globMatch("/test", "/test\u0001");
+    expect(typeof result).toBe("boolean");
+  });
+
+  it("returns false on invalid regex patterns", () => {
+    // This should not throw
+    expect(globMatch("/test", "/test[")).toBe(false);
+  });
+
+  it("matches root path", () => {
+    expect(globMatch("/", "/")).toBe(true);
+    expect(globMatch("/", "/*")).toBe(true);
+  });
 });

@@ -195,7 +195,10 @@ Training-Deny (OPTIONAL):
 : Glob pattern for paths where training is denied.
 
 Multiple Training-Allow and Training-Deny lines MAY appear.
-More specific patterns take precedence.
+Deny patterns take precedence over allow patterns: if a path
+matches both a Training-Allow and a Training-Deny pattern,
+access is denied. Paths that match no pattern are denied by
+default.
 
 ## Licensing Fields
 
@@ -237,12 +240,12 @@ Fields within an Agent block:
 
 Attribution (OPTIONAL):
 : Whether AI outputs must attribute the source. One of: "required",
-  "recommended", "none".
+  "recommended", "optional", "none".
 
 AI-Disclosure (OPTIONAL):
 : Whether AI-generated content derived from this site must be
   disclosed as AI-generated. One of: "required", "recommended",
-  "none".
+  "optional", "none".
 
 ## Compliance Fields
 

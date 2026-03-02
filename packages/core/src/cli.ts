@@ -62,13 +62,25 @@ async function check(url: string) {
   console.log();
 }
 
+const VALID_POLICY_VALUES = new Set<string>(["allow", "deny", "conditional"]);
+
+function parsePolicyFlag(name: string, defaultValue: PolicyValue): PolicyValue {
+  const value = flag(name);
+  if (!value) return defaultValue;
+  if (!VALID_POLICY_VALUES.has(value)) {
+    console.error(`Error: Invalid value "${value}" for --${name}. Must be one of: allow, deny, conditional`);
+    process.exit(1);
+  }
+  return value as PolicyValue;
+}
+
 function gen() {
   const name = flag("name");
   const url = flag("url");
-  const training = (flag("training") ?? "deny") as PolicyValue;
-  const scraping = (flag("scraping") ?? "allow") as PolicyValue;
-  const indexing = (flag("indexing") ?? "allow") as PolicyValue;
-  const caching = (flag("caching") ?? "allow") as PolicyValue;
+  const training = parsePolicyFlag("training", "deny");
+  const scraping = parsePolicyFlag("scraping", "allow");
+  const indexing = parsePolicyFlag("indexing", "allow");
+  const caching = parsePolicyFlag("caching", "allow");
   const license = flag("license");
   const contact = flag("contact");
 

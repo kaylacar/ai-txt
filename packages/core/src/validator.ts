@@ -22,6 +22,27 @@ export function validate(doc: AiTxtDocument): ValidationResult {
     }
   }
 
+  // Spec-Version should be "1.0"
+  if (doc.specVersion !== "1.0") {
+    warnings.push({
+      path: "specVersion",
+      message: `Spec-Version "${doc.specVersion}" is not recognized. Expected "1.0".`,
+      code: "UNKNOWN_SPEC_VERSION",
+    });
+  }
+
+  // "conditional" is only valid for training (per spec)
+  const nonTrainingPolicies = ["scraping", "indexing", "caching"] as const;
+  for (const field of nonTrainingPolicies) {
+    if (doc.policies[field] === "conditional") {
+      errors.push({
+        path: `policies.${field}`,
+        message: `"conditional" is only valid for training. Use "allow" or "deny" for ${field}.`,
+        code: "INVALID_CONDITIONAL_POLICY",
+      });
+    }
+  }
+
   // Training is "conditional" but no training paths defined
   if (doc.policies.training === "conditional") {
     if (!doc.trainingPaths || (doc.trainingPaths.allow.length === 0 && doc.trainingPaths.deny.length === 0)) {
@@ -48,6 +69,15 @@ export function validate(doc: AiTxtDocument): ValidationResult {
       path: "site.url",
       message: "Site URL should use HTTPS",
       code: "INSECURE_URL",
+    });
+  }
+
+  // Audit field: spec only allows "required", "optional", "none" (not "recommended")
+  if (doc.compliance?.audit === "recommended") {
+    warnings.push({
+      path: "compliance.audit",
+      message: `Audit value "recommended" is not defined in the spec. Use "required", "optional", or "none".`,
+      code: "INVALID_AUDIT_VALUE",
     });
   }
 

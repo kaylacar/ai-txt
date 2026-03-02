@@ -82,6 +82,137 @@ describe("validate", () => {
     const result = validate(doc);
     expect(result.warnings.some((w) => w.code === "MISSING_TRAINING_PATHS")).toBe(false);
   });
+
+  // ── Bug #1: conditional on non-training fields ──
+
+  it("errors when conditional is used for scraping", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      policies: { ...VALID_DOC.policies, scraping: "conditional" as any },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+    expect(result.errors.some((e) => e.path === "policies.scraping")).toBe(true);
+  });
+
+  it("errors when conditional is used for indexing", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      policies: { ...VALID_DOC.policies, indexing: "conditional" as any },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+  });
+
+  it("errors when conditional is used for caching", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      policies: { ...VALID_DOC.policies, caching: "conditional" as any },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(true);
+  });
+
+  it("no conditional error for training field", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      policies: { ...VALID_DOC.policies, training: "conditional" },
+      trainingPaths: { allow: ["/blog/*"], deny: [] },
+    };
+    const result = validate(doc);
+    expect(result.errors.some((e) => e.code === "INVALID_CONDITIONAL_POLICY")).toBe(false);
+  });
+
+  // ── Spec-Version validation ──
+
+  it("warns on unrecognized Spec-Version", () => {
+    const doc: AiTxtDocument = { ...VALID_DOC, specVersion: "2.0" };
+    const result = validate(doc);
+    expect(result.warnings.some((w) => w.code === "UNKNOWN_SPEC_VERSION")).toBe(true);
+  });
+
+  it("no spec-version warning for 1.0", () => {
+    const result = validate(VALID_DOC);
+    expect(result.warnings.some((w) => w.code === "UNKNOWN_SPEC_VERSION")).toBe(false);
+  });
+
+  // ── Audit field validation ──
+
+  it("warns when Audit uses 'recommended' (not in spec)", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      compliance: { audit: "recommended" },
+    };
+    const result = validate(doc);
+    expect(result.warnings.some((w) => w.code === "INVALID_AUDIT_VALUE")).toBe(true);
+  });
+
+  it("no audit warning for 'required', 'optional', or 'none'", () => {
+    for (const value of ["required", "optional", "none"] as const) {
+      const doc: AiTxtDocument = { ...VALID_DOC, compliance: { audit: value } };
+      const result = validate(doc);
+      expect(result.warnings.some((w) => w.code === "INVALID_AUDIT_VALUE")).toBe(false);
+    }
+  });
+
+  // ── Schema validation errors ──
+
+  it("reports schema error for invalid specVersion format", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      specVersion: "abc",
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "SCHEMA_VIOLATION")).toBe(true);
+  });
+
+  it("reports schema error for empty site name", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      site: { ...VALID_DOC.site, name: "" },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "SCHEMA_VIOLATION")).toBe(true);
+  });
+
+  it("reports schema error for invalid site URL", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      site: { ...VALID_DOC.site, url: "not-a-url" },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "SCHEMA_VIOLATION")).toBe(true);
+  });
+
+  it("reports schema error for negative rate limit", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      agents: { "*": { rateLimit: { requests: -1, window: "minute" } } },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "SCHEMA_VIOLATION")).toBe(true);
+  });
+
+  // ── Multiple warnings simultaneously ──
+
+  it("reports multiple warnings at once", () => {
+    const doc: AiTxtDocument = {
+      ...VALID_DOC,
+      site: { ...VALID_DOC.site, url: "http://test.com" },
+      policies: { training: "allow", scraping: "allow", indexing: "allow", caching: "allow" },
+    };
+    const result = validate(doc);
+    expect(result.valid).toBe(true);
+    expect(result.warnings.some((w) => w.code === "INSECURE_URL")).toBe(true);
+    expect(result.warnings.some((w) => w.code === "MISSING_LICENSE")).toBe(true);
+  });
 });
 
 describe("validateText", () => {

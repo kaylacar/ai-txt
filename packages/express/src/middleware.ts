@@ -57,7 +57,7 @@ export function aiTxt(options: AiTxtOptions) {
     } else if (origin && corsOrigins.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
     }
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
     res.setHeader("Vary", "Origin");
 
     // Security headers
@@ -71,14 +71,19 @@ export function aiTxt(options: AiTxtOptions) {
     }
 
     // Serve content
-    if (req.path === txtPath) {
-      res.setHeader("Content-Type", "text/plain; charset=utf-8");
-      res.setHeader("Cache-Control", "public, max-age=300");
-      res.send(txtContent);
-    } else {
-      res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.setHeader("Cache-Control", "public, max-age=300");
-      res.send(jsonContent);
+    const isTxt = req.path === txtPath;
+    const contentType = isTxt ? "text/plain; charset=utf-8" : "application/json; charset=utf-8";
+    const body = isTxt ? txtContent : jsonContent;
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=300");
+
+    if (req.method === "HEAD") {
+      res.setHeader("Content-Length", Buffer.byteLength(body, "utf-8").toString());
+      res.status(200).end();
+      return;
     }
+
+    res.send(body);
   };
 }

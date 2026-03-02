@@ -47,7 +47,12 @@ export {
   PolicyValueSchema,
   AgentPolicySchema,
   RateLimitSchema,
+  RateLimitWindowSchema,
   RequirementLevelSchema,
+  TrainingPathsSchema,
+  LicensingInfoSchema,
+  ContentRequirementsSchema,
+  ComplianceConfigSchema,
 } from "./schema.js";
 
 // Utilities
