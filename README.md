@@ -162,8 +162,8 @@ These four repos form a governance pipeline for AI agents on the internet: **dec
 |------|---------|
 | [agents.txt](https://github.com/kaylacar/agents-txt) | Declares what agents can do on a site |
 | **[ai.txt](https://github.com/kaylacar/ai-txt)** | **Declares AI policy — training, licensing, attribution** |
-| [agents-protocol](https://github.com/kaylacar/agents-protocol) | Execution SDK — how agents perform declared actions |
-| [rer](https://github.com/kaylacar/rer) | Cryptographic proof of what agents actually did |
+| agents-protocol | Execution SDK — how agents perform declared actions |
+| rer | Cryptographic proof of what agents actually did |
 
 ```
 declared (agents.txt / ai.txt) → executed (agents-protocol) → proven (rer)
