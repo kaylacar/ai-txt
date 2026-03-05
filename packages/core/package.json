@@ -1,62 +1,62 @@
 {
-  "name": "@ai-txt/core",
-  "version": "0.1.0",
-  "description": "Parser, generator, and validator for the ai.txt web standard — universal AI policy declaration",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "bin": {
-    "ai-txt": "./dist/cli.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsup src/index.ts src/cli.ts --format esm,cjs --dts",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
-  },
-  "keywords": [
-    "ai.txt",
-    "ai-txt",
-    "ai-policy",
-    "training-policy",
-    "content-licensing",
-    "web-standard",
-    "well-known",
-    "robots-txt",
-    "llm",
-    "machine-learning",
-    "openai",
-    "anthropic",
-    "claude"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kaylacar/ai-txt.git",
-    "directory": "packages/core"
-  },
-  "homepage": "https://github.com/kaylacar/ai-txt",
-  "bugs": {
-    "url": "https://github.com/kaylacar/ai-txt/issues"
-  },
-  "dependencies": {
-    "zod": "^3.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.3.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^4.0.0"
-  },
-  "license": "MIT"
+    "name":  "@ai-txt/core",
+    "version":  "0.1.0",
+    "description":  "Parser, generator, and validator for the ai.txt web standard - universal AI policy declaration",
+    "type":  "module",
+    "main":  "./dist/index.cjs",
+    "module":  "./dist/index.js",
+    "types":  "./dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "import":  "./dist/index.js",
+                              "require":  "./dist/index.cjs"
+                          }
+                },
+    "bin":  {
+                "ai-txt":  "./dist/cli.js"
+            },
+    "files":  [
+                  "dist"
+              ],
+    "scripts":  {
+                    "build":  "tsup src/index.ts src/cli.ts --format esm,cjs --dts",
+                    "test":  "vitest run",
+                    "typecheck":  "tsc --noEmit",
+                    "clean":  "node -e \"require(\u0027node:fs\u0027).rmSync(\u0027dist\u0027,{ recursive: true, force: true })\""
+                },
+    "keywords":  [
+                     "ai.txt",
+                     "ai-txt",
+                     "ai-policy",
+                     "training-policy",
+                     "content-licensing",
+                     "web-standard",
+                     "well-known",
+                     "robots-txt",
+                     "llm",
+                     "machine-learning",
+                     "openai",
+                     "anthropic",
+                     "claude"
+                 ],
+    "repository":  {
+                       "type":  "git",
+                       "url":  "https://github.com/kaylacar/ai-txt.git",
+                       "directory":  "packages/core"
+                   },
+    "homepage":  "https://github.com/kaylacar/ai-txt",
+    "bugs":  {
+                 "url":  "https://github.com/kaylacar/ai-txt/issues"
+             },
+    "dependencies":  {
+                         "zod":  "^3.0.0"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^25.3.0",
+                            "tsup":  "^8.0.0",
+                            "typescript":  "^5.0.0",
+                            "vitest":  "^4.0.0"
+                        },
+    "license":  "MIT"
 }

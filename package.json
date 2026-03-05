@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "check:no-legacy-runner": "node ./scripts/check-no-legacy-runner.mjs",
+    "test": "npm run check:no-legacy-runner && pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean"
   },
