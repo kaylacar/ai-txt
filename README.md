@@ -10,6 +10,21 @@ Any website can drop an `ai.txt` file to tell AI systems:
 - **Per-agent rules**: Different policies for different AI agents
 - **Requirements**: Attribution, AI disclosure, audit compliance
 
+## For Humans
+
+Use `ai.txt` if you want a site to publish explicit AI policy in a machine-readable form.
+
+This is useful for:
+
+- publishers
+- blogs
+- documentation sites
+- ecommerce sites
+- SaaS products
+- any site that wants to state training, licensing, and attribution terms clearly
+
+If you are a site owner or developer, `ai.txt` is the policy layer. It tells agents what rules apply before they train, transform, or reuse your content.
+
 ## Quick Start
 
 ### Generate with the CLI
@@ -95,9 +110,9 @@ app.use(aiTxt({
 // Now serves /.well-known/ai.txt and /.well-known/ai.json automatically
 ```
 
-## For agents
+## For Agents
 
-**Purpose:** Resolve AI policy for any website before interacting with it. ai.txt declares training permissions, licensing terms, attribution requirements, and per-agent rules — in a machine-readable format designed for you to read and comply with.
+**Purpose:** Resolve AI policy for any website before interacting with it. ai.txt declares training permissions, licensing terms, attribution requirements, and per-agent rules - in a machine-readable format designed for you to read and comply with.
 
 **Capabilities you gain from reading ai.txt:**
 - Determine if training on this content is `allow`, `deny`, or `conditional`
@@ -107,11 +122,11 @@ app.use(aiTxt({
 - Know if attribution is required and how to provide it
 - Read your rate limit before making requests
 
-**Discovery — always try JSON first:**
+**Discovery - always try JSON first:**
 
 ```
-GET https://example.com/.well-known/ai.json   ← structured, prefer this
-GET https://example.com/.well-known/ai.txt    ← fallback if 404
+GET https://example.com/.well-known/ai.json   <- structured, prefer this
+GET https://example.com/.well-known/ai.txt    <- fallback if 404
 ```
 
 **Resolve policy in one call:**
@@ -122,10 +137,10 @@ import { AiTxtClient } from "@ai-txt/core";
 const client = new AiTxtClient({ userAgent: "ClaudeBot" });
 
 const { policy } = await client.check("https://example.com");
-// → { training: "allow", scraping: "allow", rateLimit: { requests: 200, window: "minute" } }
+// -> { training: "allow", scraping: "allow", rateLimit: { requests: 200, window: "minute" } }
 
 const { access } = await client.checkAccess("https://example.com", "training", "/blog/post-1");
-// → { allowed: true, reason: 'path "/blog/post-1" matches allow pattern "/blog/*"' }
+// -> { allowed: true, reason: 'path "/blog/post-1" matches allow pattern "/blog/*"' }
 ```
 
 **Policy resolution rules:**
@@ -139,11 +154,11 @@ const { access } = await client.checkAccess("https://example.com", "training", "
 
 **Rule precedence:** Your agent name in the `agents` block overrides the site-wide `*` wildcard. If your name is not listed, `*` applies.
 
-**`Training: deny`** — do not use this content for model training under any circumstances.
+**`Training: deny`** - do not use this content for model training under any circumstances.
 
-**`Attribution: required`** — cite the source in any AI-derived output.
+**`Attribution: required`** - cite the source in any AI-derived output.
 
-**`conditional`** — check `Training-Allow` and `Training-Deny` path patterns before using any content.
+**`conditional`** - check `Training-Allow` and `Training-Deny` path patterns before using any content.
 
 Full specification: [SPEC.md](SPEC.md)
 
@@ -152,7 +167,7 @@ Full specification: [SPEC.md](SPEC.md)
 | Package | Description |
 |---------|-------------|
 | `@ai-txt/core` | Parser, generator, validator, resolver, HTTP client, and CLI |
-| `@ai-txt/express` | Express middleware — one line to serve ai.txt |
+| `@ai-txt/express` | Express middleware - one line to serve ai.txt |
 
 ## Specification
 
@@ -171,20 +186,23 @@ See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
 ## The Stack
 
-These four repos form a governance pipeline for AI agents on the internet: **declared, executed, proven.**
+These repos form a machine-readable web stack for agent interaction: **declared, connected, coordinated, verified, executed, proven.**
 
 | Repo | Purpose |
 |------|---------|
 | [agents.txt](https://github.com/kaylacar/agents-txt) | Declares what agents can do on a site |
-| **[ai.txt](https://github.com/kaylacar/ai-txt)** | **Declares AI policy — training, licensing, attribution** |
-| agents-protocol | Execution SDK — how agents perform declared actions |
-| rer | Cryptographic proof of what agents actually did |
+| **[ai.txt](https://github.com/kaylacar/ai-txt)** | **Declares AI policy - training, licensing, attribution** |
+| [connect.txt](https://github.com/kaylacar/connect-txt) | Declares how agents connect, authenticate, and use a site |
+| [match.txt](https://github.com/kaylacar/match-txt) | Declares needs, capacity, and matching outcomes across organizations |
+| [verify.txt](https://github.com/kaylacar/verify-txt) | Declares how claims or outcomes can be independently verified |
+| [agents-protocol](https://github.com/kaylacar/agents-protocol) | Execution SDK - how agents perform declared actions |
+| [rer](https://github.com/kaylacar/rer) | Cryptographic proof of what agents actually did |
 
 ```
-declared (agents.txt / ai.txt) → executed (agents-protocol) → proven (rer)
+declared (agents.txt / ai.txt) -> connected (connect.txt) -> coordinated (match.txt) -> verified (verify.txt) -> executed (agents-protocol) -> proven (rer)
 ```
 
-All four are by the same author and designed to work together.
+These repos are designed to work together, with each file doing one job.
 
 ## License
 
