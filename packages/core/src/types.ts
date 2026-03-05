@@ -1,12 +1,12 @@
 /**
- * ai.txt — Core Type System
+ * ai.txt - Core Type System
  *
  * These types define the complete ai.txt document structure.
- * A document declares a website's AI policy — training, scraping,
+ * A document declares a website's AI policy - training, scraping,
  * indexing, caching, licensing, and per-agent overrides.
  */
 
-// ── Document ──
+// -- Document --
 
 export interface AiTxtDocument {
   /** Spec version. Currently "1.0". */
@@ -31,7 +31,7 @@ export interface AiTxtDocument {
   metadata?: Record<string, string>;
 }
 
-// ── Site Info ──
+// -- Site Info --
 
 export interface SiteInfo {
   /** Human-readable site name. */
@@ -46,7 +46,7 @@ export interface SiteInfo {
   policyUrl?: string;
 }
 
-// ── Content Policies ──
+// -- Content Policies --
 
 export type PolicyValue = "allow" | "deny" | "conditional";
 
@@ -61,7 +61,7 @@ export interface ContentPolicies {
   caching: PolicyValue;
 }
 
-// ── Training Paths ──
+// -- Training Paths --
 
 export interface TrainingPaths {
   /** Glob patterns for paths where training is permitted. */
@@ -70,7 +70,7 @@ export interface TrainingPaths {
   deny: string[];
 }
 
-// ── Licensing ──
+// -- Licensing --
 
 export interface LicensingInfo {
   /** SPDX license identifier for AI training use. */
@@ -79,7 +79,7 @@ export interface LicensingInfo {
   feeUrl?: string;
 }
 
-// ── Agent Policies ──
+// -- Agent Policies --
 
 export interface AgentPolicy {
   /** Override training policy for this agent. */
@@ -103,7 +103,7 @@ export interface RateLimit {
 
 export type RateLimitWindow = "second" | "minute" | "hour" | "day";
 
-// ── Content Requirements ──
+// -- Content Requirements --
 
 export type RequirementLevel = "required" | "recommended" | "optional" | "none";
 
@@ -114,7 +114,7 @@ export interface ContentRequirements {
   aiDisclosure?: RequirementLevel;
 }
 
-// ── Compliance ──
+// -- Compliance --
 
 export interface ComplianceConfig {
   /** Whether AI agents must provide audit receipts. */
@@ -123,7 +123,7 @@ export interface ComplianceConfig {
   auditFormat?: string;
 }
 
-// ── Parse/Validate Results ──
+// -- Parse/Validate Results --
 
 export interface ParseResult {
   success: boolean;

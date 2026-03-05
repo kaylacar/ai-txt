@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-`ai.txt` is an open standard that lets any website declare its AI policy in a machine-readable file. Training permissions, licensing terms, per-agent rules, attribution requirements — in one file that AI systems can read automatically.
+`ai.txt` is an open standard that lets any website declare its AI policy in a machine-readable file. Training permissions, licensing terms, per-agent rules, attribution requirements - in one file that AI systems can read automatically.
 
 **robots.txt controls crawling. agents.txt declares capabilities. ai.txt declares AI policy.**
 
@@ -12,7 +12,7 @@ The New York Times sued OpenAI. Reddit sold its data for $60M. Stack Overflow li
 
 But there's no standard way for a website to say: "You can crawl my content, but you cannot train on it."
 
-`robots.txt` is binary — block or allow crawling. It can't express:
+`robots.txt` is binary - block or allow crawling. It can't express:
 - "Crawl yes, train no"
 - "Train allowed under CC-BY-4.0"
 - "Claude can train, GPT cannot"
@@ -52,7 +52,7 @@ That's it. Machine-readable. Any AI system can check this file before interactin
 
 **Every website.** Not just sites with APIs. Not just tech companies.
 
-- **Bloggers**: "Don't train on my content" — 3 lines
+- **Bloggers**: "Don't train on my content" - 3 lines
 - **News publishers**: "Train on free articles only, under CC-BY-4.0, attribution required"
 - **E-commerce**: "AI can index products, but not cache pricing"
 - **Corporations**: "No AI training, no scraping, audit required"
@@ -91,7 +91,7 @@ Agent: GPTBot
 
 ### Licensing
 
-SPDX license identifiers — the same standard used by npm, GitHub, and every open source project:
+SPDX license identifiers - the same standard used by npm, GitHub, and every open source project:
 
 ```
 Training-License: CC-BY-4.0
@@ -119,7 +119,7 @@ npm install @ai-txt/core     # Parser, generator, validator
 npm install @ai-txt/express   # Express middleware
 ```
 
-### Express — One Line
+### Express - One Line
 
 ```typescript
 import { aiTxt } from "@ai-txt/express";

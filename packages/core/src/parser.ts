@@ -65,7 +65,7 @@ export function parse(input: string): ParseResult {
     // Check if this is an indented line
     const isIndented = raw.startsWith("  ") || raw.startsWith("\t");
 
-    // Indented line outside a block — warn and skip
+    // Indented line outside a block - warn and skip
     if (isIndented && state === "TOP_LEVEL") {
       warnings.push({ line: lineNum, message: `Indented line outside of a block: "${trimmed}"` });
       continue;
@@ -125,7 +125,7 @@ export function parse(input: string): ParseResult {
       continue;
     }
 
-    // Non-indented line — flush any open block
+    // Non-indented line - flush any open block
     if (state === "IN_AGENT") { flushAgent(); state = "TOP_LEVEL"; }
 
     // Parse top-level key: value

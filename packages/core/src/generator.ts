@@ -8,7 +8,7 @@ export function generate(doc: AiTxtDocument): string {
   const lines: string[] = [];
 
   // Header
-  lines.push("# ai.txt — AI Policy Declaration");
+  lines.push("# ai.txt - AI Policy Declaration");
   lines.push(`Spec-Version: ${doc.specVersion}`);
   if (doc.generatedAt) {
     lines.push(`Generated-At: ${doc.generatedAt}`);

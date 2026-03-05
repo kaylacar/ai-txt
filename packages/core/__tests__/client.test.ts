@@ -81,7 +81,7 @@ describe("AiTxtClient", () => {
 
     expect(result1.success).toBe(true);
     expect(result2.success).toBe(true);
-    // Only one fetch — second call served from cache
+    // Only one fetch - second call served from cache
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -136,7 +136,7 @@ describe("AiTxtClient", () => {
       calls.push({ url, headers: init?.headers ?? {} });
 
       if (calls.length === 1) {
-        // First request — return 200 with ETag
+        // First request - return 200 with ETag
         return {
           ok: true,
           status: 200,
@@ -145,7 +145,7 @@ describe("AiTxtClient", () => {
         };
       }
 
-      // Second request — return 304 Not Modified
+      // Second request - return 304 Not Modified
       return {
         ok: false,
         status: 304,
@@ -181,7 +181,7 @@ describe("AiTxtClient", () => {
     await new Promise((r) => setTimeout(r, 10)); // would expire client TTL
     await client.discover("https://test.com");
 
-    // Server max-age overrides client TTL — still cached
+    // Server max-age overrides client TTL - still cached
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

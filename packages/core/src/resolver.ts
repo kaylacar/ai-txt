@@ -1,8 +1,8 @@
 /**
- * ai.txt — Policy Resolver
+ * ai.txt - Policy Resolver
  *
  * Resolves the effective policy for a specific AI agent by merging
- * agent-specific overrides → wildcard defaults → site-wide policies.
+ * agent-specific overrides -> wildcard defaults -> site-wide policies.
  *
  * This is the module agents actually use to answer:
  * "Am I allowed to do this?"
@@ -16,9 +16,9 @@ import type {
   ContentRequirements,
 } from "./types.js";
 
-// ── Types ──
+// -- Types --
 
-/** Fully resolved policy for a specific agent — no undefined fields. */
+/** Fully resolved policy for a specific agent - no undefined fields. */
 export interface ResolvedPolicy {
   /** Effective training policy. */
   training: PolicyValue;
@@ -38,11 +38,11 @@ export interface ResolvedPolicy {
 export interface AccessResult {
   /** Whether access is allowed. */
   allowed: boolean;
-  /** Why — useful for logging/debugging. */
+  /** Why - useful for logging/debugging. */
   reason: string;
 }
 
-// ── Resolver ──
+// -- Resolver --
 
 /**
  * Resolve the effective policy for a named agent.
@@ -101,10 +101,10 @@ export function canAccess(
     return { allowed: false, reason: `${field} is denied` };
   }
 
-  // "conditional" — only training supports path-based resolution
+  // "conditional" - only training supports path-based resolution
   if (value === "conditional") {
     if (field !== "training") {
-      // Conditional on non-training fields has no path mechanism — treat as deny
+      // Conditional on non-training fields has no path mechanism - treat as deny
       return { allowed: false, reason: `${field} is conditional but path-based rules only apply to training` };
     }
 
@@ -136,7 +136,7 @@ export function matchPath(
   allowPatterns: string[],
   denyPatterns: string[],
 ): AccessResult {
-  // Check deny first — deny takes precedence
+  // Check deny first - deny takes precedence
   for (const pattern of denyPatterns) {
     if (globMatch(path, pattern)) {
       return { allowed: false, reason: `path "${path}" matches deny pattern "${pattern}"` };
@@ -150,7 +150,7 @@ export function matchPath(
     }
   }
 
-  // No match — default deny for conditional
+  // No match - default deny for conditional
   return { allowed: false, reason: `path "${path}" does not match any training path pattern` };
 }
 
@@ -158,8 +158,8 @@ export function matchPath(
  * Simple glob matcher for URL paths.
  *
  * Supports:
- *   - `*`  — matches any characters within a single path segment (no `/`)
- *   - `**` — matches any characters including `/` (recursive)
+ *   - `*`  - matches any characters within a single path segment (no `/`)
+ *   - `**` - matches any characters including `/` (recursive)
  *   - Literal path segments
  *
  * Examples:
@@ -170,8 +170,8 @@ export function matchPath(
 export function globMatch(path: string, pattern: string): boolean {
   const regexStr = pattern
     .replace(/([.+?^${}()|[\]\\])/g, "\\$1")  // escape regex chars (not *)
-    .replace(/\/\*\*\//g, "\u0001")             // /**/ → placeholder (zero or more segments)
-    .replace(/\*\*/g, "\u0002")                 // ** → placeholder (anything including /)
+    .replace(/\/\*\*\//g, "\u0001")             // /**/ -> placeholder (zero or more segments)
+    .replace(/\*\*/g, "\u0002")                 // ** -> placeholder (anything including /)
     .replace(/\*/g, "[^/]*")                    // * = anything except /
     .replace(/\u0001/g, "(?:/.+)?/")            // restore /**/ as optional segments
     .replace(/\u0002/g, ".*");                  // restore ** as any chars

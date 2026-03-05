@@ -27,7 +27,7 @@ const DEFAULT_CACHE_TTL = 300_000; // 5 minutes
  * Client for discovering and fetching ai.txt from websites.
  *
  * Includes in-memory caching with ETag revalidation.
- * If a site has no ai.txt, the client returns `success: false` —
+ * If a site has no ai.txt, the client returns `success: false` -
  * the absence of ai.txt does NOT imply any default policy.
  * Existing norms (robots.txt, terms of service) still apply.
  */
@@ -94,7 +94,7 @@ export class AiTxtClient {
 
   /**
    * Discover a site's ai.txt and resolve the effective policy for this agent.
-   * Returns the fully merged policy (agent override → wildcard → site-wide).
+   * Returns the fully merged policy (agent override -> wildcard -> site-wide).
    */
   async check(baseUrl: string): Promise<{ success: boolean; policy?: ResolvedPolicy; errors: Array<{ message: string }> }> {
     const result = await this.discover(baseUrl);
@@ -134,7 +134,7 @@ export class AiTxtClient {
     this.cache.clear();
   }
 
-  // ── Private ──
+  // -- Private --
 
   private getCached(key: string): ParseResult | null {
     if (this.cacheTtl <= 0) return null;
@@ -146,7 +146,7 @@ export class AiTxtClient {
       return entry.result;
     }
 
-    // Expired — return null but keep entry for ETag revalidation
+    // Expired - return null but keep entry for ETag revalidation
     return null;
   }
 
@@ -181,7 +181,7 @@ export class AiTxtClient {
         signal: controller.signal,
       });
 
-      // 304 Not Modified — cache is still valid, extend TTL
+      // 304 Not Modified - cache is still valid, extend TTL
       if (response.status === 304 && cached) {
         cached.expiresAt = Date.now() + this.cacheTtl;
         return cached.result;

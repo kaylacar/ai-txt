@@ -6,7 +6,7 @@
 
 ## Abstract
 
-`ai.txt` is an open standard that defines a machine-readable file format for websites to declare their AI policy. Any website — blogs, newspapers, e-commerce stores, portfolios, forums, SaaS platforms — can place an `ai.txt` file at a well-known location to communicate:
+`ai.txt` is an open standard that defines a machine-readable file format for websites to declare their AI policy. Any website - blogs, newspapers, e-commerce stores, portfolios, forums, SaaS platforms - can place an `ai.txt` file at a well-known location to communicate:
 
 - Whether AI systems may use the site's content for training
 - Whether AI agents may scrape, index, or cache the site's content
@@ -27,12 +27,12 @@
 
 ### Design Principles
 
-1. **Universal** — Works for any website, not just those with APIs
-2. **Simple** — A blog owner can write an `ai.txt` file by hand in 30 seconds
-3. **Machine-readable** — AI agents and crawlers can parse it programmatically
-4. **Granular** — Per-agent and per-path policies for fine-grained control
-5. **Declarative** — States policy; never contains secrets or enforcement logic
-6. **Complementary** — Works alongside robots.txt, agents.txt, and llms.txt
+1. **Universal** - Works for any website, not just those with APIs
+2. **Simple** - A blog owner can write an `ai.txt` file by hand in 30 seconds
+3. **Machine-readable** - AI agents and crawlers can parse it programmatically
+4. **Granular** - Per-agent and per-path policies for fine-grained control
+5. **Declarative** - States policy; never contains secrets or enforcement logic
+6. **Complementary** - Works alongside robots.txt, agents.txt, and llms.txt
 
 ### Relationship to Other Standards
 
@@ -104,7 +104,7 @@ Agents-TXT: https://example.com/.well-known/agents.txt
 Example:
 
 ```
-# ai.txt — AI Policy Declaration
+# ai.txt - AI Policy Declaration
 Spec-Version: 1.0
 Generated-At: 2026-02-21T00:00:00.000Z
 ```
@@ -132,9 +132,9 @@ These are the core policy declarations.
 
 **Policy values:**
 
-- `allow` — Permitted without restriction
-- `deny` — Not permitted
-- `conditional` — Permitted under specific conditions; only valid for `Training` (see Training Paths and Licensing)
+- `allow` - Permitted without restriction
+- `deny` - Not permitted
+- `conditional` - Permitted under specific conditions; only valid for `Training` (see Training Paths and Licensing)
 
 ### Training Path Fields
 
@@ -284,7 +284,7 @@ Agents SHOULD use `ETag` and `If-None-Match` headers for cache revalidation to a
 
 ### Absence of ai.txt
 
-The absence of `ai.txt` does NOT imply any default policy. If a site does not serve `/.well-known/ai.txt` or `/.well-known/ai.json`, existing norms apply — including `robots.txt`, the site's terms of service, and applicable law. `ai.txt` provides additional granularity; it does not replace the baseline.
+The absence of `ai.txt` does NOT imply any default policy. If a site does not serve `/.well-known/ai.txt` or `/.well-known/ai.json`, existing norms apply - including `robots.txt`, the site's terms of service, and applicable law. `ai.txt` provides additional granularity; it does not replace the baseline.
 
 ### Policy Enforcement
 
@@ -381,7 +381,7 @@ AI-Disclosure: required
 ### For AI Agent Developers
 
 1. Check `/.well-known/ai.txt` (or `ai.json`) before interacting with any site
-2. Respect `Training: deny` — do not use content for model training
+2. Respect `Training: deny` - do not use content for model training
 3. Identify your agent via `User-Agent` header to receive per-agent policies
 4. Respect declared rate limits
 5. Provide attribution when required
@@ -403,7 +403,7 @@ if (result.success) {
 
 ## References
 
-- RFC 8615 — Well-Known URIs
-- RFC 9309 — Robots Exclusion Protocol
-- RFC 9116 — security.txt
-- SPDX License List — https://spdx.org/licenses/
+- RFC 8615 - Well-Known URIs
+- RFC 9309 - Robots Exclusion Protocol
+- RFC 9116 - security.txt
+- SPDX License List - https://spdx.org/licenses/

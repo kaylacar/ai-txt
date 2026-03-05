@@ -19,12 +19,12 @@ https://github.com/kaylacar/ai-txt/blob/master/SPEC.md
 
 **Related information:**
 Text-format AI policy declaration file. Allows website operators to
-declare their AI content policy — whether AI systems may train on
+declare their AI content policy - whether AI systems may train on
 content, which AI agents are permitted, under what licensing terms
 (SPDX identifiers), and what compliance requirements apply.
 Complementary to robots.txt (which controls crawling); ai.txt declares
 nuanced AI-specific policies such as "you may crawl but not train on
-this content" — a distinction robots.txt cannot express.
+this content" - a distinction robots.txt cannot express.
 
 ---
 

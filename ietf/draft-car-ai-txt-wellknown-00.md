@@ -55,14 +55,14 @@ informative:
 This document registers two Well-Known URIs under the "/.well-known/"
 path: "ai.txt" and "ai.json". These URIs define a machine-readable
 policy declaration format that allows website operators to declare
-their AI policy — whether AI systems may train on their content,
+their AI policy - whether AI systems may train on their content,
 which AI agents are permitted, under what licensing terms, and what
 compliance requirements apply.
 
 The format is designed to be complementary to "robots.txt" {{ROBOTS}},
 which controls crawl access. Where "robots.txt" can block crawling
 entirely, "ai.txt" expresses nuanced policies such as "you may crawl
-but not train on this content" — a distinction that "robots.txt"
+but not train on this content" - a distinction that "robots.txt"
 cannot express.
 
 --- middle
@@ -357,7 +357,7 @@ Specification document(s):
 
 Related information:
 : Text-format AI policy declaration file. Allows website operators
-  to declare their AI content policy — training permissions, licensing
+  to declare their AI content policy - training permissions, licensing
   terms, per-agent rules, and compliance requirements.
 
 ## Well-Known URI Registration: "ai.json"
@@ -379,7 +379,7 @@ Related information:
 # Example: News Site
 
 ~~~
-# ai.txt — AI Policy Declaration
+# ai.txt - AI Policy Declaration
 # Spec-Version: 1.0
 
 Site-Name: News Daily

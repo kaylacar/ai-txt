@@ -14,7 +14,7 @@ const BASE_DOC: AiTxtDocument = {
   },
 };
 
-// ── resolve ──
+// -- resolve --
 
 describe("resolve", () => {
   it("resolves named agent with overrides", () => {
@@ -79,7 +79,7 @@ describe("resolve", () => {
   });
 });
 
-// ── canAccess ──
+// -- canAccess --
 
 describe("canAccess", () => {
   it("returns allowed for allow policy", () => {
@@ -130,7 +130,7 @@ describe("canAccess", () => {
       trainingPaths: { allow: ["/content/**"], deny: ["/content/private/**"] },
       agents: { "*": {} },
     };
-    // This path matches both allow and deny — deny wins
+    // This path matches both allow and deny - deny wins
     const result = canAccess(doc, "SomeBot", "training", "/content/private/secret");
     expect(result.allowed).toBe(false);
   });
@@ -182,7 +182,7 @@ describe("canAccess", () => {
   });
 });
 
-// ── globMatch ──
+// -- globMatch --
 
 describe("globMatch", () => {
   it("matches exact path", () => {
@@ -232,7 +232,7 @@ describe("globMatch", () => {
   });
 });
 
-// ── matchPath ──
+// -- matchPath --
 
 describe("matchPath", () => {
   it("allows path matching allow pattern", () => {

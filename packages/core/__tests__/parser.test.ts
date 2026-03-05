@@ -6,7 +6,7 @@ Site-Name: My Blog
 Site-URL: https://myblog.com
 `;
 
-const FULL_DOC = `# ai.txt — AI Policy Declaration
+const FULL_DOC = `# ai.txt - AI Policy Declaration
 Spec-Version: 1.0
 Generated-At: 2026-02-21T00:00:00.000Z
 

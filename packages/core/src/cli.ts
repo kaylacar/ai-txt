@@ -103,7 +103,7 @@ function gen() {
 
 function help() {
   console.log(`
-  ai-txt — AI policy declaration standard
+  ai-txt - AI policy declaration standard
 
   Commands:
     check <url>     Check a site's AI policy
