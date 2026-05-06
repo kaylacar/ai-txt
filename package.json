@@ -4,7 +4,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "check:no-legacy-runner": "node ./scripts/check-no-legacy-runner.mjs",
-    "test": "npm run check:no-legacy-runner && pnpm -r test",
+    "test": "npm run check:no-legacy-runner && pnpm -r --workspace-concurrency=1 test",
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean"
   },

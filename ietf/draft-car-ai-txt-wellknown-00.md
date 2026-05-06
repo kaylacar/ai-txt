@@ -1,8 +1,8 @@
 ---
-title: The "ai.txt" and "ai.json" Well-Known URIs
+title: "AI.TXT: A Declaration File for AI Usage Preferences, Licensing, and Policy"
 abbrev: ai-txt
 docname: draft-car-ai-txt-wellknown-00
-date: 2026-02
+date: 2026-05-05
 category: info
 ipr: trust200902
 area: Applications and Real-Time
@@ -49,21 +49,52 @@ informative:
     title: "SPDX License List"
     target: https://spdx.org/licenses/
     date: 2024
+  AIPREF-VOCAB:
+    title: "A Vocabulary for Expressing AI Usage Preferences"
+    target: https://datatracker.ietf.org/doc/draft-ietf-aipref-vocab/
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-ietf-aipref-vocab
+  AIPREF-ATTACH:
+    title: "Attaching AI Usage Preferences to Content"
+    target: https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-ietf-aipref-attach
+  SPAWNING-AITXT:
+    title: "ai.txt — Generate ai.txt files for your website"
+    target: https://site.spawning.ai/spawning-ai-txt
+    date: 2023
+  TDMREP:
+    title: "TDM Reservation Protocol"
+    target: https://www.w3.org/community/tdmrep/
+    date: 2022
+  CF-CONTENT-SIGNALS:
+    title: "Cloudflare Content Signals Policy"
+    target: https://blog.cloudflare.com/content-signals-policy/
+    date: 2025
 
 --- abstract
 
 This document registers two Well-Known URIs under the "/.well-known/"
-path: "ai.txt" and "ai.json". These URIs define a machine-readable
-policy declaration format that allows website operators to declare
-their AI policy - whether AI systems may train on their content,
-which AI agents are permitted, under what licensing terms, and what
-compliance requirements apply.
+path: "ai.txt" and "ai.json". These URIs define a structured,
+machine-readable file in which a site operator can declare AI usage
+preferences (training, scraping, indexing, caching), licensing terms,
+required attribution, per-agent rules, and optional connect and verify
+blocks linking to related declaration surfaces.
 
-The format is designed to be complementary to "robots.txt" {{ROBOTS}},
-which controls crawl access. Where "robots.txt" can block crawling
-entirely, "ai.txt" expresses nuanced policies such as "you may crawl
-but not train on this content" - a distinction that "robots.txt"
-cannot express.
+"ai.txt" is positioned as a structured attachment surface for AI
+usage preferences in addition to robots.txt and HTTP-header carriage
+proposed by the IETF AIPREF working group {{AIPREF-VOCAB}}
+{{AIPREF-ATTACH}}. As the AIPREF vocabulary stabilizes, "ai.txt" can
+carry those preferences in a typed, single-file form alongside the
+broader licensing, attribution, and policy declarations defined in
+this document.
+
+This format is complementary to "robots.txt" {{ROBOTS}}. Where
+"robots.txt" can block crawling entirely, "ai.txt" expresses nuanced
+policies such as "you may crawl but not train on this content" — a
+distinction that "robots.txt" alone cannot express.
 
 --- middle
 
@@ -109,6 +140,74 @@ agents.txt:
 security.txt {{RFC9116}}:
 : Declares security vulnerability disclosure contacts. Similar
   well-known file pattern; different domain.
+
+## Relationship to AIPREF
+
+The IETF AIPREF working group is developing a vocabulary
+{{AIPREF-VOCAB}} for expressing AI usage preferences and an
+attachment specification {{AIPREF-ATTACH}} for carrying those
+preferences via robots.txt directives and HTTP response headers.
+
+"ai.txt" complements that work; it does not replace it. AIPREF
+defines the vocabulary (the set of preference terms and their
+semantics) and two carriage mechanisms (robots.txt and HTTP headers).
+"ai.txt" is a third carriage mechanism — a single, structured,
+typed file — that provides three properties not addressed by robots.txt
+attachment or per-response headers:
+
+- Carriage of preferences for an entire site, independent of any
+  individual response or robots.txt path block.
+- A single audit surface — one file at one URL — that can be fetched
+  once and cached for site-wide preference resolution.
+- A place to declare preferences alongside related declarations
+  (licensing, attribution, per-agent rate limits, optional connect
+  and verify blocks) that fall outside AIPREF's scope.
+
+When the AIPREF vocabulary stabilizes, "ai.txt" implementations
+SHOULD use AIPREF preference names where they apply. Implementations
+SHOULD treat the preferences carried in "ai.txt" as equivalent in
+authority to the same preferences carried via the AIPREF
+robots.txt or HTTP-header mechanisms. Where multiple carriers
+disagree for the same site and resource, conflict resolution is
+out of scope for this document and may be addressed by future AIPREF
+output.
+
+## Related Work
+
+The following efforts overlap with or are adjacent to this document.
+
+Spawning ai.txt (2023) {{SPAWNING-AITXT}}:
+: An earlier file at "/ai.txt" published by Spawning Inc. for
+  text-and-data-mining opt-out, scoped narrowly to TDM permission
+  per file pattern. The format defined in this document is a strict
+  superset, covering training, scraping, indexing, caching,
+  per-agent rules, licensing, attribution, and optional connect and
+  verify blocks. The present document acknowledges Spawning's prior
+  use of the name and positions itself as a successor declaration
+  surface rather than a competing one.
+
+W3C TDM Reservation Protocol {{TDMREP}}:
+: Defines a "/.well-known/tdmrep.json" file for declaring text and
+  data mining reservations under EU Directive 2019/790. Adjacent in
+  domain (machine-readable opt-outs) but narrower in scope (TDM
+  reservation only). "ai.txt" can reference or coexist with
+  "tdmrep.json"; sites with TDM-only requirements MAY use
+  "tdmrep.json" alone.
+
+Cloudflare Content Signals Policy {{CF-CONTENT-SIGNALS}}:
+: A robots.txt extension deployed at scale (millions of domains)
+  that adds AI-specific signals (search, ai-input, ai-train) to
+  robots.txt User-agent / Allow / Disallow records. Like AIPREF
+  attach, it carries preferences inside robots.txt. "ai.txt"
+  carries the same class of preferences — plus licensing,
+  attribution, and per-agent metadata — in a separate file. Sites
+  MAY publish both; their semantics SHOULD agree.
+
+agents.txt:
+: A companion well-known file that declares what AI agents CAN do
+  on a site (sanctioned endpoints, protocols, authentication). Where
+  "ai.txt" expresses usage preferences and policy, "agents.txt"
+  expresses positive capability. They are designed to coexist.
 
 ## Requirements Language
 
