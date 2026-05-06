@@ -1,14 +1,21 @@
 # ai.txt
 
-**An open standard for AI policy declaration.**
+**Structured AI policy declaration.** A single, typed file at `/.well-known/ai.txt` (and JSON companion at `/.well-known/ai.json`) in which a site operator declares:
 
-`robots.txt` controls crawling. `agents.txt` declares capabilities. **`ai.txt` declares AI policy.**
+- **Training, scraping, indexing, caching** — `allow`, `deny`, or `conditional`
+- **Licensing** — SPDX identifiers (`CC-BY-4.0`, `MIT`, custom) and links to commercial terms
+- **Per-agent rules** — different policies for ClaudeBot, GPTBot, Bingbot, etc.
+- **Attribution and AI-disclosure** requirements
+- **Audit format** expectations (e.g., RER artifacts)
+- **Optional `Connect` and `Verify` blocks** linking to related declaration surfaces
 
-Any website can drop an `ai.txt` file to tell AI systems:
-- **Training**: Can AI train on this content? Allow / Deny / Conditional
-- **Licensing**: Under what license? (SPDX identifiers like CC-BY-4.0)
-- **Per-agent rules**: Different policies for different AI agents
-- **Requirements**: Attribution, AI disclosure, audit compliance
+`robots.txt` can block a crawler but cannot express "you may crawl but not train on this content." `ai.txt` carries that distinction in a typed, machine-readable form.
+
+**Status**
+
+- IETF Internet-Draft: `draft-car-ai-txt-wellknown-00` (filed locally; pending Datatracker submission). See [`ietf/draft-car-ai-txt-wellknown-00.md`](ietf/draft-car-ai-txt-wellknown-00.md).
+- IANA Well-Known URI registrations: `ai.txt` (#76) and `ai.json` (#77) — filed, under review.
+- Spec version 1.0. npm packages published. 113 tests passing.
 
 ## For Humans
 
@@ -173,16 +180,41 @@ Full specification: [SPEC.md](SPEC.md)
 
 See [SPEC.md](SPEC.md) for the full v1.0 specification.
 
-## Why ai.txt?
+## Relationship to AIPREF
 
-`robots.txt` can block a crawler but cannot express "you may crawl but not train on this content." There is no existing machine-readable standard for a website to declare:
+The IETF AIPREF working group is developing two drafts on a standards-track milestone for August 2026:
 
-- Training permitted under CC-BY-4.0
-- Claude may train, GPT may not
-- Free content is open, premium content is not
-- Attribution is required for all AI-derived content
+- `draft-ietf-aipref-vocab` — a vocabulary for expressing AI usage preferences (training, scraping, indexing, etc.).
+- `draft-ietf-aipref-attach` — an attachment mechanism that carries those preferences via robots.txt directives and HTTP response headers.
 
-`ai.txt` fills that gap.
+`ai.txt` complements that work; it does not replace it. AIPREF defines the vocabulary and two carriage mechanisms (robots.txt extension, HTTP headers). `ai.txt` is a third carriage mechanism — a single, structured, typed file at `/.well-known/ai.txt` — for sites that already publish structured policy at well-known URLs and want one file to fetch, cache, and audit.
+
+`ai.txt` provides three properties that robots.txt-attachment and per-response headers do not:
+
+- **Site-wide carriage** independent of any individual response or robots.txt path block.
+- **A single audit surface** — one URL, one file, cacheable — that resolves to the full AI-policy posture for the site.
+- **Co-located declarations** that fall outside AIPREF's scope: licensing (SPDX), attribution, AI-disclosure requirements, per-agent rate limits, and optional `Connect` and `Verify` blocks.
+
+When the AIPREF vocabulary stabilizes, `ai.txt` implementations should use AIPREF preference names where they apply, and treat preferences carried in `ai.txt` as equivalent in authority to the same preferences carried via the AIPREF robots.txt or HTTP-header mechanisms. Conflict resolution across carriers is out of scope here and is better defined by the AIPREF WG.
+
+## IANA Registration
+
+Well-known URI registrations are filed, under review:
+
+- `ai.txt` — filing #76
+- `ai.json` — filing #77
+
+## Related Work
+
+| Standard | Scope | Relationship |
+|----------|-------|--------------|
+| `draft-ietf-aipref-vocab` | AI usage preference vocabulary (IETF AIPREF WG) | `ai.txt` should carry this vocabulary as it stabilizes. |
+| `draft-ietf-aipref-attach` | Carriage of AIPREF preferences via robots.txt + HTTP headers | `ai.txt` is a third, complementary carriage option — single-file, site-wide, cacheable. |
+| Spawning `ai.txt` (2023) | TDM opt-out file at `/ai.txt` | Prior use of the name. The format defined here is a strict superset (training, scraping, indexing, caching, per-agent rules, licensing, attribution, audit). Acknowledged as a successor declaration surface, not a competitor. |
+| W3C TDM Reservation Protocol (`/.well-known/tdmrep.json`) | TDM reservations under EU Directive 2019/790 | Adjacent. Sites with TDM-only requirements MAY use `tdmrep.json` alone; `ai.txt` covers a broader policy surface. |
+| Cloudflare Content Signals Policy | robots.txt extension (`Content-Signal: search=yes, ai-train=no`) deployed at scale | Same class of preferences, different carriage. Sites MAY publish both; their semantics SHOULD agree. |
+| `robots.txt` ([RFC 9309](https://www.rfc-editor.org/rfc/rfc9309)) | Crawl restriction | Complementary. `ai.txt` adds training, licensing, and per-agent declarations that `robots.txt` cannot express. Both coexist. |
+| `agents.txt` | Capability declaration (what agents CAN do on a site) | Companion file. `ai.txt` expresses policy; `agents.txt` expresses positive capability. Designed to coexist. |
 
 ## The Stack
 
